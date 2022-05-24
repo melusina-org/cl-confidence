@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# testsuite — Testsuite for Confidence
+
+# Confidence (https://github.com/melusina-org/cl-confidence)
+# This file is part of Confidence.
+#
+# Copyright © 2019–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+: ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
+: ${testsuitesystem:="org.melusina.confidence/testsuite"}
+: ${testsuiteclean:='no'}
+: ${testsuitelisp:='sbcl'}
+
+testsuite_lisp()
+{
+    case "${testsuitelisp}" in
+	sbcl)
+	    sbcl --noinform --disable-debugger "$@"
+	    ;;
+	ccl|ccl64)
+	    ccl64 "$@"
+	    ;;
+    esac
+}
+
+testsuite_run()
+{
+    if [ $# -eq 0 ]; then
+	set -- 'run-all-tests'
+    fi
+    testsuite_lisp\
+	--eval "(ql:quickload \"${testsuitesystem}\" :silent t)"\
+	--eval "(${testsuitesystem}:$1)"
+}
+
+testsuite_main()
+{
+    while getopts 'CL:' OPTARG; do
+	case "${OPTION}" in
+	    C)	testsuiteclean='yes';;
+	    L)	testsuitelisp="${OPTARG}";;
+	esac
+    done
+
+    shift $((OPTIND - 1))
+
+    if [ "${testsuiteclean}" = 'yes' ]; then
+	(cd "${TOPLEVELDIR}" && development/clean)
+    fi
+    
+    testsuite_run "$@"
+}
+
+testsuite_main "$@"
+
+# End of file `testsuite'

@@ -1,0 +1,256 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename org.melusina.confidence.info
+@settitle Confidence Manual
+@c %**end of header
+
+@c for install-info
+@dircategory Software development
+@direntry
+* org.melusina.confidence: A Simple Interactive Test Framework for Common Lisp
+@end direntry
+
+@copying
+Confidence software and associated documentation is distributed
+under the terms of the MIT License.
+
+@quotation
+Copyright © 2019–2022 Michaël Le Barbier
+All rights reserved.
+
+This file must be used under the terms of the MIT License.
+This source file is licensed as described in the file LICENSE, which
+you should have received as part of this distribution. The terms
+are also available at https://opensource.org/licenses/MIT
+@end quotation
+
+@end copying
+@titlepage
+
+@title Confidence Manual
+@subtitle draft version
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@c We use @andkey, etc to escape & from TeX in lambda lists --
+@c so we need to define them for info as well.
+@macro andallowotherkeys
+&allow-other-keys
+@end macro
+@macro andoptional
+&optional
+@end macro
+@macro andrest
+&rest
+@end macro
+@macro andkey
+&key
+@end macro
+@macro andbody
+&body
+@end macro
+
+@ifnottex
+
+@include include/ifnottex.texinfo
+
+@node Top, , ,
+@comment  node-name,  next,  previous,  up
+@top Confidence
+
+@insertcopying
+
+@menu
+* Introduction::
+* Assertions::
+* Testcases::
+* Specialities::
+@end menu
+
+@end ifnottex
+
+@node Introduction, Assertions, Top, Top
+@chapter Introduction
+
+@b{Confidence} is a test framework for Common Lisp that focuses on
+simplicty. It avoids bureaucracy and makes it easy to work
+interactively, without a complicated setup, and with explicit
+functions and decisions.
+
+@b{Confidence} exposes the developer with two abstractions: assertions
+and testcases.  An @i{assertion} is essentially a @i{predicate} which
+yields a detailed explanation when it fails.  This is useful, so that
+the developer has enough context to understand the failure without
+scrutinizing the application state. A @i{testcase} is a function that
+runs assertions in a prepared environment and returns aggregated
+results about these assertions. A testcase can call other testcases
+and testcases can be parametrised---as functions are.
+
+This very simple organisation makes @b{Confidence} easy to pickup and
+to use, it decreases the number of concepts required.  For instance, a
+specific @i{fixture} feature is not needed, as familiar constructions
+like let-bindings or with-macros will work as expected: a testcase is a
+function. A special kind of function, but a function.
+
+
+@node Assertions, Define Assertions, Introduction, Top
+@chapter Assertions
+
+
+@menu
+* Define Assertions::
+* Basic Assertions::
+* Condition Assertions::
+* String Assertions::
+* List Assertions::
+* Vector Assertions::
+* Floating Numbers Assertions::
+@end menu
+
+@node Define Assertions, Basic Assertions, Assertions, Assertions
+@section Define Assertions
+@include include/macro-org.melusina.confidence-define-assertion.texinfo
+
+@node Basic Assertions, Condition Assertions, Define Assertions, Assertions
+@section Basic Assertions
+
+@include include/fun-org.melusina.confidence-assert-t.texinfo
+@include include/fun-org.melusina.confidence-assert-t-star.texinfo
+@include include/fun-org.melusina.confidence-assert-nil.texinfo
+@include include/fun-org.melusina.confidence-assert-type.texinfo
+@include include/fun-org.melusina.confidence-assert-eq.texinfo
+@include include/fun-org.melusina.confidence-assert-eql.texinfo
+@include include/fun-org.melusina.confidence-assert-equal.texinfo
+@include include/fun-org.melusina.confidence-assert-equals.texinfo
+@include include/fun-org.melusina.confidence-assert-lt.texinfo
+@include include/fun-org.melusina.confidence-assert-gt.texinfo
+@include include/fun-org.melusina.confidence-assert-lt-equals.texinfo
+@include include/fun-org.melusina.confidence-assert-gt-equals.texinfo
+
+@node Condition Assertions, String Assertions, Basic Assertions, Assertions
+@section Condition Assertions
+
+@include include/macro-org.melusina.confidence-assert-condition.texinfo
+
+@node String Assertions, List Assertions, Condition Assertions, Assertions
+@section String Assertions
+
+@include include/fun-org.melusina.confidence-assert-string-equal.texinfo
+@include include/fun-org.melusina.confidence-assert-string-equals.texinfo
+@include include/fun-org.melusina.confidence-assert-string-gt.texinfo
+@include include/fun-org.melusina.confidence-assert-string-gt-equals.texinfo
+@include include/fun-org.melusina.confidence-assert-string-lt.texinfo
+@include include/fun-org.melusina.confidence-assert-string-lt-equals.texinfo
+@include include/fun-org.melusina.confidence-assert-string-match.texinfo
+
+@node List Assertions, Vector Assertions, String Assertions, Assertions
+@section List Assertions
+
+@include include/fun-org.melusina.confidence-assert-list-equal.texinfo
+@include include/fun-org.melusina.confidence-assert-set-equal.texinfo
+@include include/fun-org.melusina.confidence-assert-subsetp.texinfo
+
+@node Vector Assertions, Floating Numbers Assertions, List Assertions, Assertions
+@section Vector Assertions
+
+@include include/fun-org.melusina.confidence-assert-vector-equal.texinfo
+
+@node Floating Numbers Assertions, Testcases, Vector Assertions, Assertions
+@section Floating Numbers Assertions
+
+@include include/fun-org.melusina.confidence-assert-float-is-approximately-equal.texinfo
+@include include/fun-org.melusina.confidence-assert-float-is-essentially-equal.texinfo
+@include include/fun-org.melusina.confidence-assert-float-is-definitely-greater-than.texinfo
+@include include/fun-org.melusina.confidence-assert-float-is-definitely-less-than.texinfo
+
+@node Testcases, Specialities, Floating Numbers Assertions, Top
+@chapter Testcases
+
+The @i{define-testcase} macro allows to define testcases, which are
+functions specially crafted to run tests.  There are two differences
+with regular functions. The first difference is that calls to
+testcases and assertions in a testcase are instrumented, so that a
+global success report is produced. The second difference is that when
+a testcase is run as a toplevel form in a batch environment (not at a
+REPL) the testcase prints a summary of results when done and exits the
+program with a success status reflecting the testcase result.
+
+Defined testcases are automatically exported, which makes it easy to
+call them from the REPL, the testsuite tool or to add them to
+generated documentation.
+
+@include include/var-org.melusina.confidence-star-testcase-interactive-p-star.texinfo
+@include include/macro-org.melusina.confidence-define-testcase.texinfo
+
+@node Specialities, , Testcases, Top
+@chapter Specialities
+
+This chapter covers specialities such as test fixtures, building
+hierarchies of tests, skipping tests known to fail, @i{etc.}
+
+@section Test Fixtures
+
+As testcases are actually functions the @b{Confidence} user does not
+need any specific support to build test fixtures: using let-bindings
+to fix the value of special variables and using with-macros to manage
+test resources is just working as expected.
+
+It is simple enough to define a with-macro in Common Lisp so that
+@b{Confidence} does not provide an extra feature to do so. Just mind
+the `unwind-protect` operator.
+
+
+@section Test Hierarchies
+
+Some test frameworks provide facilities to organise tests in
+hierarchies, so that a testcase claims it belongs to one or several
+testsuites.
+
+Allowing a testcase to claim it belongs to one or several testsuites
+makes it hard to tell which tests are actually run by a given
+testsuite and @b{Confidence} prefers explicit workflows.  To define an
+object that can be thought of as a testsuite, the @b{Confidence} user
+only needs to define a testcase calling the testcases they want to add
+to the testsuite.  As testcases are automatically exported, it makes
+it very easy to call the testsuite from the command line. This
+organisation also makes it easy to write more complex tests like
+functional tests journeys, adding fixtures to the defined testsuite.
+
+Having a testcase explicitly listing the other testcases it must run
+is a simple and reliable organisation that never lies to the
+programmer.  It also makes the test hierarchy navigable in IDEs
+without extra tooling, which is a good thing.
+
+
+@section Test Tags
+
+Some test frameworks provide a tag feature so that it possible to run
+tests according to some tags attached to them.
+
+Using tags to decorate tests that need to be run in such or such
+context, similarly to what popular Java test frameworks propose,
+obfuscates the test workflow and nobody wants to discover after
+several weeks of operation that some tests were not run by the
+deployment pipeline.
+
+Having a testcase explicitly listing the other testcases it must run
+is a simple and reliable organisation that never lies to the
+programmer.  It also makes the test hierarchy navigable in IDEs
+without extra tooling, which is a good thing.
+
+
+@section Test Selection
+
+When some tests are only relevant to some platform, or must be be
+controlled by a feature, it is very easy to control their inclusion in
+the testsuite using the feature-related reader macros.  It does not
+seem necessary for @b{Confidence} to provide extra tools here.
+
+@bye
