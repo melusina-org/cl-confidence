@@ -87,7 +87,7 @@
    (assert-vector-equal #(0) #(0 1))))
 
 (define-testcase testsuite-assert-float* ()
-  (let ((*double-float-precision* 1))
+  (let ((*single-float-precision* 1))
     (ensure-success
      (assert-float-is-definitely-less-than 0.0 1.0))
     (ensure-success

@@ -59,6 +59,7 @@
    ;; Vector Assertions
    #:assert-vector-equal
    ;; Floating Numbers Assertions
+   #:*single-float-precision*
    #:*double-float-precision*
    #:assert-float-is-approximately-equal
    #:assert-float-is-definitely-greater-than

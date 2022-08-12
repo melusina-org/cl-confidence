@@ -165,6 +165,8 @@ function. A special kind of function, but a function.
 @node Floating Numbers Assertions, Testcases, Vector Assertions, Assertions
 @section Floating Numbers Assertions
 
+@include include/var-org.melusina.confidence-star-double-float-precision-star.texinfo
+@include include/var-org.melusina.confidence-star-single-float-precision-star.texinfo
 @include include/fun-org.melusina.confidence-assert-float-is-approximately-equal.texinfo
 @include include/fun-org.melusina.confidence-assert-float-is-essentially-equal.texinfo
 @include include/fun-org.melusina.confidence-assert-float-is-definitely-greater-than.texinfo

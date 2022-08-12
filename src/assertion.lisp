@@ -412,79 +412,109 @@ provided by the :TEST keyword argument."
 ;;;; Float Assertions
 ;;;;
 
-(defparameter *double-float-precision* (float-precision 1.0d0))
+(defparameter *single-float-precision*
+  (float-precision 1.0)
+  "The precision used to compare of single precision floats.
+This number can be understood as the number of matching digits in the binary representation
+of the fractional part of float numbers, yet distinct tests interpret this value differently.")
 
-(defmacro float-comparison-threshold (binop k u v)
-  `(let (_ eu ev)
+(defparameter *double-float-precision*
+  (float-precision 1.0d0)
+  "The precision used to compare of double precision floats.
+This number can be understood as the number of matching digits in the binary representation
+of the fractional part of float numbers, yet distinct tests interpret this value differently.")
+
+(defmacro float-comparison-threshold (float-type binop k u v)
+  `(let (float-precision float-unit _ eu ev)
+     (declare (ignorable _))
+     (ecase ,float-type
+       (single-float
+	(setf float-precision *single-float-precision*)
+	(setf float-unit 1.0))
+       (double-float
+	(setf float-precision *double-float-precision*)
+	(setf float-unit 1.0d0)))
      (setf (values _ eu _) (decode-float ,u)
            (values _ ev _) (decode-float ,v))
-     (scale-float 1.0d0 (+ (- ,k *double-float-precision* 2) (,binop eu ev)))))
+     (scale-float float-unit (+ (- ,k float-precision 2) (,binop eu ev)))))
 
-(define-assertion assert-float-is-definitely-less-than (float1 float2 &optional (inaccuracy 0))
+(define-assertion assert-float-is-approximately-equal (float1 float2  &key (inaccuracy 0) (float-type 'single-float))
+  "Assert that FLOAT1 is approximately equal to FLOAT2.
+This means that FLOAT1 and FLOAT2 are in a neighbourhood whose size is based
+on the magnitude orders of FLOAT1 and FLOAT2 and the floating point precision.
+
+A specific FLOAT-TYPE of 'SINGLE-FLOAT or 'DOUBLE-FLOAT can be explicitly supplied."
+  (:report
+   (lambda (stream)
+     (format stream
+"~%~%The neighbourhood used to compare approximate equality of ~A
+
+  ~A  and  ~A
+
+with an inaccuracy of ~A has size ~A."
+            float-type
+	    float1 float2
+	    inaccuracy (float-comparison-threshold float-type max inaccuracy float1 float2))))
+  (<= (abs (- float1 float2)) (float-comparison-threshold float-type max inaccuracy float1 float2)))
+
+(define-assertion assert-float-is-essentially-equal (float1 float2 &key (inaccuracy 0) (float-type 'single-float))
+  "Asssert that FLOAT1 is essentially equal to FLOAT2.
+This means that FLOAT1 and FLOAT2 are in a neighbourhood whose size is based
+on the magnitude orders of FLOAT1 and FLOAT2 and the floating point precision.
+
+A specific FLOAT-TYPE of 'SINGLE-FLOAT or 'DOUBLE-FLOAT can be explicitly supplied."
+  (:report
+   (lambda (stream)
+     (format stream
+"~%~%The neighbourhood used to compare essential equality of ~A
+
+  ~A  and  ~A
+
+with an inaccuracy of ~A has size ~A."
+            float-type
+	    float1 float2
+	    inaccuracy (float-comparison-threshold float-type max inaccuracy float1 float2))))
+  (<= (abs (- float1 float2)) (float-comparison-threshold float-type min inaccuracy float1 float2)))
+
+(define-assertion assert-float-is-definitely-less-than (float1 float2 &key (inaccuracy 0) (float-type 'single-float))
   "Assert that FLOAT1 is definetely less than FLOAT2
 This means that FLOAT2 is greater than FLOAT1 and not in a neighbourhood of FLOAT1
 whose diameter is controlled by the INACCURACY, the magnitude orders of FLOAT1 and
-FLOAT2 and the floating point precision."
+FLOAT2 and the floating point precision.
+
+A specific FLOAT-TYPE of 'SINGLE-FLOAT or 'DOUBLE-FLOAT can be explicitly supplied."
   (:report
    (lambda (stream)
      (format stream
-"~%~%The neighbourhood used to compare definitive ordering of
+"~%~%The neighbourhood used to compare definitive ordering of ~A
 
   ~A  and  ~A
 
 with an inaccuracy of ~A has size ~A."
-            float1 float2 inaccuracy
-            (float-comparison-threshold max inaccuracy float1 float2))))
-  (> (- float2 float1) (float-comparison-threshold max inaccuracy float1 float2)))
+            float-type
+            float1 float2
+	    inaccuracy (float-comparison-threshold float-type max inaccuracy float1 float2))))
+  (> (- float2 float1) (float-comparison-threshold float-type max inaccuracy float1 float2)))
 
 
-(define-assertion assert-float-is-definitely-greater-than (float1 float2 &optional (inaccuracy 0))
+(define-assertion assert-float-is-definitely-greater-than (float1 float2 &key (inaccuracy 0) (float-type 'single-float))
 "Assert that FLOAT1 is defintely greater than FLOAT2.
 This means that FLOAT1 is greater than FLOAT2 and not in a neighbourhood of FLOAT2
 whose diameter is controlled by the INACCURACY, the magnitude orders of FLOAT1 and
-FLOAT2 and the floating point precision."
+FLOAT2 and the floating point precision.
+
+A specific FLOAT-TYPE of 'SINGLE-FLOAT or 'DOUBLE-FLOAT can be explicitly supplied."
   (:report
    (lambda (stream)
      (format stream
-"~%~%The neighbourhood used to compare definitive ordering of
+"~%~%The neighbourhood used to compare definitive ordering of ~A
 
   ~A  and  ~A
 
 with an inaccuracy of ~A has size ~A."
-            float1 float2 inaccuracy
-            (float-comparison-threshold max inaccuracy float2 float1))))
-  (> (- float1 float2) (float-comparison-threshold max inaccuracy float2 float1)))
-
-(define-assertion assert-float-is-approximately-equal (float1 float2 &optional (inaccuracy 0))
-  "Assert that FLOAT1 is approximately equal to FLOAT2.
-This means that FLOAT1 and FLOAT2 are in a neighbourhood whose size is based
-on the magnitude orders of FLOAT1 and FLOAT2 and the floating point precision."
-  (:report
-   (lambda (stream)
-     (format stream
-"~%~%The neighbourhood used to compare approximate equality of
-
-  ~A  and  ~A
-
-with an inaccuracy of ~A has size ~A."
-            float1 float2 inaccuracy
-            (float-comparison-threshold max inaccuracy float1 float2))))
-  (<= (abs (- float1 float2)) (float-comparison-threshold max inaccuracy float1 float2)))
-
-(define-assertion assert-float-is-essentially-equal (float1 float2 &optional (inaccuracy 0))
-  "Asssert that FLOAT1 is essentially equal to FLOAT2.
-This means that FLOAT1 and FLOAT2 are in a neighbourhood whose size is based
-on the magnitude orders of FLOAT1 and FLOAT2 and the floating point precision."
-  (:report
-   (lambda (stream)
-     (format stream
-"~%~%The neighbourhood used to compare essential equality of
-
-  ~A  and  ~A
-
-with an inaccuracy of ~A has size ~A."
-            float1 float2 inaccuracy
-            (float-comparison-threshold max inaccuracy float1 float2))))
-  (<= (abs (- float1 float2)) (float-comparison-threshold min inaccuracy float1 float2)))
+            float-type
+            float1 float2
+	    inaccuracy (float-comparison-threshold float-type max inaccuracy float2 float1))))
+  (> (- float1 float2) (float-comparison-threshold float-type max inaccuracy float2 float1)))
 
 ;;;; End of file `assertion.lisp'
