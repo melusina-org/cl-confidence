@@ -28,7 +28,7 @@ This is a list of symbols designating the argument-less testcases in the call st
 (defparameter *testsuite-name* "TESTSUITE"
   "The basename for the testsuite.
 
-Usually TESTSUITE but common values are ACCEPTANCE, INTEGRATION, PREFLIGHT, etc.")
+Usually TESTSUITE but commonly used values are ACCEPTANCE, INTEGRATION, PREFLIGHT, etc.")
 
 (defparameter *testsuite-id* nil
   "A unique identfier for the current testsuite run batch.")
@@ -40,6 +40,10 @@ Usually TESTSUITE but common values are ACCEPTANCE, INTEGRATION, PREFLIGHT, etc.
 
 (defun guess-cicdtool ()
   "Guess which CI/CD tool this process is running under.
+
+The returned value is one of:
+
+  NIL, :GOCD, :JENKINS, :GITHUB-ACTIONS, :CIRCLECI
 
 References:
 
@@ -60,7 +64,7 @@ References:
      nil)))
 
 (defun make-testsuite-id ()
-  "Make a good value for *TESTSUITE-ID* based on the CI/CD tool user."
+  "Make a good value for *TESTSUITE-ID* based on *TESTSUITE-NAME* and CI/CD tool used."
   (let ((designator
 	  (case (guess-cicdtool)
 	    (:gocd
@@ -254,13 +258,14 @@ reflecting the failure or success of tests."
   "Define a test case function TESTCASE-NAME, accepting TESTCASE-ARGS with BODY.
 
 The BODY is examined and assertions spotted in it are wrapped with extra code
-installing restarts and triggering supervisor events.
+installing restarts and aggregating results for assertions and nested testcases..
 
-Test cases are allowed to be nested.  A toplevel test case is a test suite and triggers testsuite
-supervisor events when beginning and ending.  The return value of a testcase is a boolean which
-is true iff the current testsuite has experienced a failed assertion.  Thus, even if a test case
-does not experience any failure, a NIL value is returned if a previous test case in the current
-test suite has experienced a failure."
+The return value of a testcase is a RESULT, holding a precise description of test that
+ran and their outcomes.
+
+When *TESTCASE-INTERACTIVE-P* is NIL, batch mode is assumed and a summary of
+failures is printed on stdout and the program is exited with a status
+reflecting the failure or success of tests."
   (set-testcase-properties testcase-name)
   `(prog1
        (defun ,testcase-name ,testcase-args
