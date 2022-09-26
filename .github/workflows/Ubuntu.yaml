@@ -1,0 +1,37 @@
+name: Ubuntu
+
+on:
+  - push
+  - workflow_dispatch
+
+jobs:
+  delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+    - uses: actions/checkout@v1
+    - name: 'Setup Ubuntu'
+      run: |
+        sudo libexec/setup/ubuntu
+    - name: 'Setup Quicklisp'
+      run: |
+        libexec/setup/quicklisp        
+    - name: 'Run testsuite'
+      run: |
+        development/testsuite
+    - name: 'Make documentation'
+      run: |
+        development/makedoc
+    - uses: actions/upload-artifact@v3
+      with:
+        name: org.melusina.confidence.html
+        path: obj/makedoc/org.melusina.confidence.html
+    - uses: actions/upload-artifact@v3
+      with:
+        name: org.melusina.confidence.info
+        path: obj/makedoc/org.melusina.confidence.info
+    - uses: actions/upload-artifact@v3
+      with:
+        name: org.melusina.confidence.pdf
+        path: obj/makedoc/org.melusina.confidence.pdf
+
