@@ -286,26 +286,36 @@ of returning normally."))
 (defparameter *current-testcase-result* nil
   "The result of the current testcase.")
 
+(defgeneric record-result (new-result testcase-result)
+  (:method ((new-result result) (accumulator testcase-result))
+    (with-slots (results total) accumulator
+      (setf results (nconc results (list new-result)))))
+  (:method ((new-result assertion-result) (accumulator testcase-result))
+    (declare (ignore new-result))
+    (incf (slot-value accumulator 'total))
+    (call-next-method))
+  (:method ((new-result assertion-success) (accumulator testcase-result))
+    (declare (ignore new-result))
+    (incf (slot-value accumulator 'success))
+    (call-next-method))
+  (:method ((new-result assertion-failure) (accumulator testcase-result))
+    (declare (ignore new-result))
+    (incf (slot-value accumulator 'failure))
+    (call-next-method))
+  (:method ((new-result assertion-condition) (accumulator testcase-result))
+    (declare (ignore new-result))
+    (incf (slot-value accumulator 'condition))
+    (call-next-method))
+  (:method ((new-result testcase-result) (accumulator testcase-result))
+    (dolist (slot '(success failure condition total))
+      (incf (slot-value accumulator slot)
+	    (slot-value new-result slot)))
+    (call-next-method)))
+
 (defun record-testcase-result (result &optional (testcase-result *current-testcase-result*))
   "Record RESULT in TESTCASE-RESULT."
   (unless testcase-result
     (return-from record-testcase-result result))
-  (with-slots (total success failure condition results) testcase-result
-    (setf results (nconc results (list result)))
-    (etypecase result
-      (assertion-success
-       (incf success)
-       (incf total))
-      (assertion-failure
-       (incf failure)
-       (incf total))
-      (assertion-condition
-       (incf condition)
-       (incf total))
-      (testcase-result
-       (dolist (slot '(success failure condition total))
-	 (incf (slot-value testcase-result slot)
-	       (slot-value result slot)))))) 
-  result)
+  (record-result result testcase-result))
 
 ;;;; End of file `result.lisp'

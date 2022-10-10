@@ -19,6 +19,7 @@
    #:assertion-failure
    #:assertion-condition
    #:testcase-result
+   #:record-result
    ;; Testcases
    #:define-testcase
    #:without-confidence
