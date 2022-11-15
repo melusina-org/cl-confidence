@@ -14,7 +14,15 @@
 (in-package #:org.melusina.confidence)
 
 (defparameter *testcase-interactive-p*
-  (and (position :swank *features*) t)
+  (let ((is-likely-to-run-in-a-slime-session
+	  (member :swank *features*))
+	(is-likely-to-run-in-a-sly-session
+	  (member :sklynk *features*)))
+    (flet ((ensure-boolean (generalised-boolean)
+	     (and generalised-boolean t)))
+      (ensure-boolean
+       (or is-likely-to-run-in-a-slime-session
+	   is-likely-to-run-in-a-sly-session))))
   "Flag governing the interactive mode of testcases.
 When the flag is a generalised boolean, a failed assertion can be retried. When
 the flag is NIL, the toplevel testcase is exiting the program when done.
