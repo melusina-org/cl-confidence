@@ -14,7 +14,8 @@
 (in-package #:org.melusina.confidence)
 
 (defparameter *testcase-interactive-p*
-  (and (position :swank *features*) t)
+  (and (or (position :swank *features*)     ;; SLIME
+           (position :slynk *features*) t)) ;; SLY
   "Flag governing the interactive mode of testcases.
 When the flag is a generalised boolean, a failed assertion can be retried. When
 the flag is NIL, the toplevel testcase is exiting the program when done.
