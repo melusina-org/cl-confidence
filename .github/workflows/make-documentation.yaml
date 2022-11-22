@@ -1,5 +1,4 @@
-name: Ubuntu
-
+name: 'Make Documentation'
 on:
   - push
   - workflow_dispatch
