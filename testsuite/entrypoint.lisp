@@ -20,9 +20,7 @@
   (format t "~&~%Available testcases:")
   (loop :for testcase :in (list-testcases "ORG.MELUSINA.CONFIDENCE/TESTSUITE")
 	:do (format t "~& ~S" testcase))
-  (format t "~&")
-  (unless *testcase-interactive-p*
-    (uiop:quit 0)))
+  (format t "~&"))
 
 (define-testcase run-all-tests ()
   "Run all available tests."

@@ -26,6 +26,7 @@
    #:*testcase-interactive-p*
    #:*testsuite-name*
    #:*testsuite-id*
+   #:*testsuite-last-result*
    #:list-testcases
    ;; Assertions
    #:define-assertion
