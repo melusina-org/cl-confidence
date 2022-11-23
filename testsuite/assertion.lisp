@@ -49,14 +49,14 @@
 
 (define-testcase testsuite-assert-string* ()
   (ensure-failure
-   (assert-string= t (string-upcase nil))
+   (assert-string= t "NIL")
    "*The parameter STRING1 is expected to have type STRING but actually has type*")
   (ensure-failure
    (assert-string<= "AAB" "AAAA")
    "*Every character of STRING1 is less than or equal to the character of STRING2*")
   (ensure-failure
    (assert-string<= "AAB" "AAAA")
-   "*upto index 2*"));, which are #?B and #?A*"))
+   "*upto index 2*"))
 
 (define-testcase testsuite-assert-list* ()
   (ensure-success

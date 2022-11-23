@@ -14,6 +14,7 @@
 (defpackage #:org.melusina.confidence
   (:use #:common-lisp)
   (:export
+   #:quit
    ;; Results
    #:assertion-success
    #:assertion-failure
