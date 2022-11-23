@@ -48,6 +48,9 @@
    (assert-condition (error "A simple error") nil)))
 
 (define-testcase testsuite-assert-string* ()
+  ;; Mask the following assertion
+  ;;  which is currently triggering a SIGILL (illegal CPU instruction)
+  ;;  on some ARMs.
   #+org.melusina.confidence/known-failure
   (ensure-failure
    (assert-string= t "NIL")
