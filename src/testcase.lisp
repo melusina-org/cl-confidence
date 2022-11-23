@@ -14,12 +14,19 @@
 (in-package #:org.melusina.confidence)
 
 (defparameter *testcase-interactive-p*
-  (and (position :swank *features*) t)
+  (let ((is-likely-to-run-in-a-slime-session
+	  (member :swank *features*))
+	(is-likely-to-run-in-a-sly-session
+	  (member :slynk *features*)))
+    (flet ((ensure-boolean (generalised-boolean)
+	     (and generalised-boolean t)))
+      (ensure-boolean
+       (or is-likely-to-run-in-a-slime-session
+	   is-likely-to-run-in-a-sly-session))))
   "Flag governing the interactive mode of testcases.
-When the flag is a generalised boolean, a failed assertion can be retried. When
-the flag is NIL, the toplevel testcase is exiting the program when done.
+When the flag is a generalised boolean, a failed assertion can be retried.
 
-The default value of the parameter is based on the :SWANK feature.")
+The default value of the parameter is based on the :SWANK and :SLYNK features.")
 
 (defparameter *testcase-path* nil
   "The current path in the testcase hierarchy.
@@ -223,8 +230,7 @@ guarantees that conditions triggered by the evaluation of arguments are recorded
   (merge-pathnames
    (make-pathname
     :name (string-downcase (symbol-name (slot-value result 'name)))
-    :type "log"
-    )
+    :type "log")
    #p"obj/confidence/"))
 
 (defun export-testcase-result (result)
@@ -235,24 +241,14 @@ guarantees that conditions triggered by the evaluation of arguments are recorded
     (with-open-file (stream pathname :direction :output :if-exists :supersede)
       (describe result stream))))
 
-(defun maybe-process-testcase-result (result)
-  "Maybe print details about RESULT and exit the program.
-
-When *TESTCASE-INTERACTIVE-P* is NIL, batch mode is assumed and a summary of
-failures is printed on stdout and the program is exited with a status
-reflecting the failure or success of tests."
+(defun maybe-perform-testsuite-epilogue ()
+  "When invoked from a testsuite, prints datails about the results."
+  (when (< 1 (length *testcase-path*))
+    (return-from maybe-perform-testsuite-epilogue *current-testcase-result*))
   (when (>= 1 (length *testcase-path*))
-    (describe result)
-    (format t "~&"))
-  (when (or *testcase-interactive-p* (< 1 (length *testcase-path*)))
-    (return-from maybe-process-testcase-result result))
-  (when (= 0 (slot-value result 'total))
-    (format t "~&Error: There was no test result recorded.~%")
-    (uiop:quit 1))
-  (export-testcase-result result)
-  (if (< (slot-value result 'success) (slot-value result 'total))
-      (uiop:quit 1)
-      (uiop:quit 0)))
+    (setf *testsuite-last-result* *current-testcase-result*)
+    (describe *testsuite-last-result*)
+    (format t "~&")))
 
 (defmacro define-testcase (testcase-name testcase-args &body body)
   "Define a test case function TESTCASE-NAME, accepting TESTCASE-ARGS with BODY.
@@ -281,7 +277,7 @@ reflecting the failure or success of tests."
 	       (*testcase-path*
 		 (cons (quote ,testcase-name) *testcase-path*)))
 	   ,@(define-testcase/wrap-confidence-forms body)
-	   (maybe-process-testcase-result *current-testcase-result*)))
+	   (maybe-perform-testsuite-epilogue)))
      (export (quote ,testcase-name))
      (set-testcase-properties ',testcase-name)))
 
@@ -290,5 +286,22 @@ reflecting the failure or success of tests."
   (loop :for s :being :the :external-symbols :of (find-package package-designator)
 	:when (get s :org.melusina.confidence/testcase)
 	:collect s))
+
+(defun quit ()
+  "Quit the SBCL lisp image and set exit status accordingly."
+  (let ((exit-code-success 0)
+	(exit-code-failure 1)
+	(exit-code-configuration 78))
+    (unless *testsuite-last-result*
+      (format t "~&Error: There was no testsuite performed.~%")
+      (uiop:quit exit-code-configuration))
+    (with-slots (success total) *testsuite-last-result*
+      (when (= 0 total)
+	(format t "~&Error: There was a testsuite performed but no test result recorded.~%")
+	(uiop:quit exit-code-configuration))
+      (export-testcase-result *testsuite-last-result*)
+      (if (< success total)
+	  (uiop:quit exit-code-failure)
+	  (uiop:quit exit-code-success)))))
 
 ;;;; End of file `testcase.lisp'

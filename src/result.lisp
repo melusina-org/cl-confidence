@@ -286,6 +286,9 @@ of returning normally."))
 (defparameter *current-testcase-result* nil
   "The result of the current testcase.")
 
+(defvar *last-testsuite-result* nil
+  "The result of the last testsuite.")
+
 (defgeneric record-result (new-result testcase-result)
   (:method ((new-result result) (accumulator testcase-result))
     (with-slots (results total) accumulator

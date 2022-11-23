@@ -14,6 +14,7 @@
 (defpackage #:org.melusina.confidence
   (:use #:common-lisp)
   (:export
+   #:quit
    ;; Results
    #:assertion-success
    #:assertion-failure
@@ -26,6 +27,7 @@
    #:*testcase-interactive-p*
    #:*testsuite-name*
    #:*testsuite-id*
+   #:*testsuite-last-result*
    #:list-testcases
    ;; Assertions
    #:define-assertion

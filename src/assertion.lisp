@@ -119,6 +119,17 @@ This does not compare EXPR to T as a generalised boolean, cf. ASSERT-T*."
 
 (define-assertion assert-type (expr type)
   "Assert that EXPR evaluates to a value of type TYPE."
+  (:report
+   (lambda (stream)
+     (format stream
+	     #.(concatenate
+		'string
+		"~%~%The value yielded by EXPR is~%~%  ~S~&~%"
+		"and is of type~%~%  ~S~&~%"
+		"which is not a subtype of ~%~%  ~S~&~%")
+	     expr
+	     (type-of expr)
+	     type)))
   (typep expr type))
 
 (define-assertion assert-eq (a b)
