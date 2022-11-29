@@ -8,8 +8,8 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v3
       - name: 'Install MacPorts'
+        id: 'macports'
         uses: melusina-org/gha-install-macports@v1
         with:
           ports: >-
@@ -18,7 +18,7 @@ jobs:
       - name: 'Install Quicklisp in CI environment'
         run: >-
           sbcl
-          --load '/opt/local/share/cl-quicklisp/quicklisp.lisp'
+          --load '${{ steps.macports.outputs.prefix }}/share/cl-quicklisp/quicklisp.lisp'
           --eval '(quicklisp-quickstart:install)'
           --eval '(ql-util:without-prompting (ql:add-to-init-file))'
           --quit
