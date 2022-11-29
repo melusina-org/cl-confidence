@@ -59,7 +59,7 @@ testsuite_main()
     if [ "${testsuiteclean}" = 'yes' ]; then
 	(cd "${TOPLEVELDIR}" && development/clean)
     fi
-    
+
     testsuite_run "$@"
 }
 
