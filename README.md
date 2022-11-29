@@ -25,10 +25,10 @@ Look for the artefacts on a recent workflow run, three files are available:
 PDF, HTML and INFO.
 
 # Confidence in Public Repositories
-;;
 
  Here is a list of public repositories using Confidence:
 
  - https://github.com/melusina-org/cl-confidence
  - https://github.com/melusina-org/cl-rashell
  - https://github.com/melusina-org/cl-atelier
+ - https://github.com/kaveh808/kons-9
