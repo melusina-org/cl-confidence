@@ -24,5 +24,8 @@ jobs:
           --quit
       - name: 'Checkout repository'
         uses: actions/checkout@v3
+      - name: 'Fingerprint testsuite'
+        run: >-
+          openssl sha256 testsuite/*.lisp
       - name: 'Run the testsuite'
         run: 'development/testsuite'
