@@ -16,8 +16,12 @@ jobs:
             sbcl +fancy
             cl-quicklisp
       - name: 'Install Quicklisp in CI environment'
-        run: |
-          sbcl --load '/opt/local/share/cl-quicklisp/quicklisp.lisp' --eval '(quicklisp-quickstart:install)' --eval '(ql-util:without-prompting (ql:add-to-init-file))' --quit
+        run: >-
+          sbcl
+          --load '/opt/local/share/cl-quicklisp/quicklisp.lisp'
+          --eval '(quicklisp-quickstart:install)'
+          --eval '(ql-util:without-prompting (ql:add-to-init-file))'
+          --quit
       - name: 'Checkout repository'
         uses: actions/checkout@v3
       - name: 'Run the testsuite'
