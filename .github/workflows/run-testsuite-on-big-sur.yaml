@@ -1,4 +1,4 @@
-name: 'Run testsuite on BigSur'
+name: 'Run testsuite on MacOS BigSur'
 on:
   - workflow_dispatch
   - push
