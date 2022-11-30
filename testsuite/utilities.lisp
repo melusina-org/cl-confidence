@@ -29,12 +29,22 @@
 (dolist (ensure-macro '(ensure-success ensure-failure ensure-condition))
   (setf (get ensure-macro :org.melusina.confidence/testcase) t))
 
+(defmacro on-assertion-failed/continue (&body body-forms)
+  "Restart function continuing on assertion failed."
+  `(handler-bind
+       ((assertion-failed #'continue))
+     ,@body-forms))
+			 
+  
 (define-testcase ensure-success-1 (result)
   (assert-type result 'assertion-success))
 
 (defmacro ensure-success (form)
   "Ensure that FORM yield an assertion success."
-  `(ensure-success-1 (confidence::supervise-assertion ,(ensure-unwrap form))))
+  `(ensure-success-1
+    (on-assertion-failed/continue
+      (confidence::supervise-assertion
+       ,(ensure-unwrap form)))))
 
 (define-testcase ensure-failure-1 (result &optional description-pattern)
   (assert-type result 'assertion-failure)
@@ -46,7 +56,8 @@
 When DESCRIPTION-PATTERN is provided, it also ensures that the error
 description satisfies this pattern."
   `(ensure-failure-1
-    (confidence::supervise-assertion ,(ensure-unwrap form))
+    (on-assertion-failed/continue
+      (confidence::supervise-assertion ,(ensure-unwrap form)))
     ,description-pattern))
 
 (define-testcase ensure-condition-1 (result &optional condition-type)
@@ -59,7 +70,8 @@ description satisfies this pattern."
 When CONDITION-TYPE is provided, it also ensures that the signalled condition
 has the required type."
   `(ensure-condition-1
-    (confidence::supervise-assertion ,(ensure-unwrap form))
+    (on-assertion-failed/continue
+      (confidence::supervise-assertion ,(ensure-unwrap form)))
     ,condition-type))
 
 

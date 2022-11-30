@@ -22,6 +22,7 @@
    #:testcase-result
    #:record-result
    ;; Testcases
+   #:assertion-failed
    #:define-testcase
    #:without-confidence
    #:*testcase-interactive-p*

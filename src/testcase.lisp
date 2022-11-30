@@ -86,10 +86,19 @@ References:
 	     (random-string 7 :base36)))))
     (concatenate 'string *testsuite-name* designator)))
 
-
+
 ;;;
 ;;; SUPERVISE-ASSERTION
 ;;;
+
+(define-condition assertion-failed (serious-condition)
+  ((result
+    :initarg :result
+    :documentation "The ASSERTION-RESULT describing the failure."))
+  (:report
+   (lambda (condition stream)
+     (with-slots (result) condition
+       (describe result stream)))))
 
 (defun supervise-assertion-1 (&key name form type argument-names argument-lambdas assertion-lambda)
   "Supervise the execution of ARGUMENTS-LAMBDA and ASSERTION-LAMBDA."
@@ -97,16 +106,16 @@ References:
 	     (multiple-value-bind (success-p description)
 		 (handler-case
 		     (if argument-condition
-			 (make-instance
-			  'assertion-condition
-			  :path *testcase-path*
-			  :name name
-			  :argument-names argument-names
-			  :argument-values argument-values
-			  :form form
-			  :type type
-			  :condition (first argument-condition))
-			 (funcall assertion-lambda argument-values))
+                         (make-instance
+                          'assertion-condition
+                          :path *testcase-path*
+                          :name name
+                          :argument-names argument-names
+                          :argument-values argument-values
+                          :form form
+                          :type type
+                          :condition argument-condition)
+                         (funcall assertion-lambda argument-values))
 	     	   (t (unexpected-condition)
 		     (make-instance
 		      'assertion-condition
@@ -139,7 +148,8 @@ References:
 				 :type type)))))
 	   (evaluation-strategy (argument-values)
 	     (evaluation-strategy-1
-	      (member-if (lambda (object) (typep object 'condition)) argument-values)
+	      (first
+	       (member-if (lambda (object) (typep object 'condition)) argument-values))
 	      argument-values))
 	   (supervise-evaluation-1 (argument-lambda)
 	     (handler-case (funcall argument-lambda)
@@ -147,7 +157,48 @@ References:
 		 unexpected-condition)))
 	   (supervise-evaluation (argument-lambdas)
 	     (evaluation-strategy (mapcar #'supervise-evaluation-1 argument-lambdas))))
-    (supervise-evaluation argument-lambdas)))
+    (loop :with retry-p = t
+	  :with result = nil
+	  :while retry-p
+	  :do (restart-case
+		  (progn
+		    (setf result (supervise-evaluation argument-lambdas))
+		    (when (or (typep result 'assertion-failure)
+			      (typep result 'assertion-condition))
+		      (error 'assertion-failed :result result))
+		    (setf retry-p nil)
+		    (values result))
+		(*retry ()
+		  :report
+		  (lambda (stream)
+		    (format stream
+			    "~@<Retry ~A.~@:>"
+			    name)))
+		(continue ()
+		  :report
+		  (lambda (stream)
+		    (format stream
+			    "~@<Record a failure for ~A and continue testing.~@:>"
+			    name))
+		  (setf retry-p nil))
+		(ignore ()
+		  :report
+		  (lambda (stream)
+		    (format stream
+			    "~@<Record a success for ~A and continue testing.~@:>"
+			    name))
+		  (setf retry-p nil
+			result
+			(with-slots (argument-values) result
+			  (make-instance
+			   'assertion-success
+			   :path *testcase-path*
+			   :name name
+			   :argument-names argument-names
+			   :argument-values argument-values
+			   :form form
+			   :type type)))))
+	  :finally (return result))))
 
 (defmacro supervise-assertion (form)
   "Supervise the execution of the assertion FORM and return ASSERTION evaluation details.
@@ -190,7 +241,7 @@ guarantees that conditions triggered by the evaluation of arguments are recorded
     (setf (get name :org.melusina.confidence/testcase) t)))
 
 (defun define-testcase/wrap-confidence-forms (body-forms)
-  "Walks through BODY-FORMS and wrap assertion forms in a RESTART-CASE."
+  "Walks through BODY-FORMS and wrap Confidence forms found with a supervisor."
   (labels
       ((is-funcall-p (form)
          (when (and (listp form) (not (null form)) (symbolp (first form)) (listp (rest form)))

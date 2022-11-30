@@ -27,7 +27,7 @@
 (defparameter *alphabet-base64* "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/-"
   "The set of characters used for base 64 encoding.")
 
-(defun random-string (&optional (length 32) (alphabet *alphabet-base36*))
+(defun random-string (&optional (length 32) (alphabet :base36))
   "Prepare a random alphabetic string of given LENGTH.
 
 The returned string contains LENGTH characters chosen from
