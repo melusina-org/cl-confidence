@@ -13,20 +13,26 @@
 
 (in-package #:org.melusina.confidence)
 
-(defparameter *testcase-interactive-p*
-  (let ((is-likely-to-run-in-a-slime-session
-	  (member :swank *features*))
-	(is-likely-to-run-in-a-sly-session
-	  (member :slynk *features*)))
-    (flet ((ensure-boolean (generalised-boolean)
-	     (and generalised-boolean t)))
-      (ensure-boolean
-       (or is-likely-to-run-in-a-slime-session
-	   is-likely-to-run-in-a-sly-session))))
-  "Flag governing the interactive mode of testcases.
-When the flag is a generalised boolean, a failed assertion can be retried.
+(defparameter *testcase-interaction-mode*
+  :open-debugger-in-situ
+  "Parameter governing the interaction mode of testcases.
+The possible values for this parameter are:
 
-The default value of the parameter is based on the :SWANK and :SLYNK features.")
+  :OPEN-DEBUGGER-IN-SITU
+    Whenever an assertion is failed, an ASSERTION-FAILED condition.
+    is signalled.  This normally opens the debugger.
+
+  :CONTINUE
+    Failed assertions are counted and reported together with all other
+    results when the test suite completes.")
+
+(defun on-assertion-failed-open-debugger-in-situ ()
+  "Arrange for failed assertions to open the debugger in situ."
+  (setf *testcase-interaction-mode* :open-debugger-in-situ))
+
+(defun on-assertion-failed-continue ()
+  "Arrange for failed assertions to not interrupt the execution flow of a testsuite."
+  (setf *testcase-interaction-mode* :continue))
 
 (defparameter *testcase-path* nil
   "The current path in the testcase hierarchy.
@@ -165,7 +171,11 @@ References:
 		    (setf result (supervise-evaluation argument-lambdas))
 		    (when (or (typep result 'assertion-failure)
 			      (typep result 'assertion-condition))
-		      (error 'assertion-failed :result result))
+		      (ecase *testcase-interaction-mode*
+			(:open-debugger-in-situ
+			 (error 'assertion-failed :result result))
+			(:continue
+			 nil)))
 		    (setf retry-p nil)
 		    (values result))
 		(*retry ()

@@ -21,11 +21,14 @@
    #:assertion-condition
    #:testcase-result
    #:record-result
-   ;; Testcases
+   ;; Testcases Interaction Mode
    #:assertion-failed
+   #:on-assertion-failed-open-debugger-in-situ
+   #:on-assertion-failed-continue
+   ;; Testcases
    #:define-testcase
    #:without-confidence
-   #:*testcase-interactive-p*
+   #:*testcase-interaction-mode*
    #:*testsuite-name*
    #:*testsuite-id*
    #:*testsuite-last-result*

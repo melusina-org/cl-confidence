@@ -188,8 +188,10 @@ Defined testcases are automatically exported, which makes it easy to
 call them from the REPL, the testsuite tool or to add them to
 generated documentation.
 
-@include include/var-org.melusina.confidence-star-testcase-interactive-p-star.texinfo
 @include include/macro-org.melusina.confidence-define-testcase.texinfo
+@include include/var-org.melusina.confidence-star-testcase-interaction-mode-star.texinfo
+@include include/fun-org.melusina.confidence-on-assertion-failed-open-debugger-in-situ.texinfo
+@include include/fun-org.melusina.confidence-on-assertion-failed-continue.texinfo             
 
 @node Specialities, , Testcases, Top
 @chapter Specialities
