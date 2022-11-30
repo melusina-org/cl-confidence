@@ -1,0 +1,78 @@
+#!/bin/sh
+
+# visit — Visit Confidence Homepage
+
+# Confidence (https://github.com/melusina-org/cl-confidence)
+# This file is part of Confidence.
+#
+# Copyright © 2019–2022 Michaël Le Barbier
+# All rights reserved.
+
+# This file must be used under the terms of the MIT License.
+# This source file is licensed as described in the file LICENSE, which
+# you should have received as part of this distribution. The terms
+# are also available at https://opensource.org/licenses/MIT
+
+: ${TOPLEVELDIR:=$(git rev-parse --show-toplevel)}
+: ${subrdir:=${TOPLEVELDIR}/subr}
+
+. "${subrdir}/stdlib.sh"
+
+homepage="https://github.com/melusina-org/cl-confidence"
+
+usage()
+{
+    cat <<'EOF'
+Usage: development/visit [LOCATION]
+ Visit the homepage of the project.
+Arguments:
+ LOCATION
+   The actual location to visit. Allowed values are
+
+      code, issues and actions   
+EOF
+}
+
+homepage_code()
+{
+    printf '%s' "${homepage}"
+}
+
+homepage_issues()
+{
+    printf '%s' "${homepage}/issues"
+}
+
+homepage_actions()
+{
+    printf '%s' "${homepage}/actions"
+}
+
+visit_main()
+{
+    local location url
+    location='code'
+
+    case "$1" in
+	code|actions|issues)
+	    location="$1"
+	    shift
+	    ;;
+	*)
+	    usage
+	    exit 1
+    esac
+
+    if [ $# -gt 0 ]; then
+	1>&2 printf 'Failure: Too many arguments.\n'
+	usage
+	exit 64
+    fi
+    
+    url=$(homepage_${location})
+    open "${url}"
+}
+
+visit_main "$@"
+
+# End of file `visit'
