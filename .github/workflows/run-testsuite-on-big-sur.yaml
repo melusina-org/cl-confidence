@@ -8,13 +8,11 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v3
       - name: 'Install MacPorts'
         id: 'macports'
         uses: melusina-org/gha-install-macports@v1
-        with:
-          ports: >-
-            sbcl +fancy
-            cl-quicklisp
       - name: 'Install Quicklisp in CI environment'
         run: >-
           sbcl
@@ -25,7 +23,5 @@ jobs:
       - name: 'Add Workspace to Quicklisp local project directories'
         run: >-
           printf '\n(pushnew \043p\"%s\" ql:*local-project-directories*)\n' "${GITHUB_WORKSPACE}" >> ~/.sbclrc
-      - name: 'Checkout repository'
-        uses: actions/checkout@v3
       - name: 'Run the testsuite'
         run: 'development/testsuite'
