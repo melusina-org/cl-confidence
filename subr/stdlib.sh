@@ -3,7 +3,7 @@
 # Confidence (https://github.com/melusina-org/cl-confidence)
 # This file is part of Confidence.
 #
-# Copyright © 2019–2022 Michaël Le Barbier
+# Copyright © 2019–2023 Michaël Le Barbier
 # All rights reserved.
 
 # This file must be used under the terms of the MIT License.

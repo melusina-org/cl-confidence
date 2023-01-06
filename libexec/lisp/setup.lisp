@@ -3,7 +3,7 @@
 ;;;; Confidence (https://github.com/melusina-org/cl-confidence)
 ;;;; This file is part of Confidence.
 ;;;;
-;;;; Copyright © 2019–2022 Michaël Le Barbier
+;;;; Copyright © 2019–2023 Michaël Le Barbier
 ;;;; All rights reserved.
 
 ;;;; This file must be used under the terms of the MIT License.
@@ -23,7 +23,7 @@
 
 (setf org.melusina.atelier:*parameter-bindings*
       '((:copyright-holder . "Michaël Le Barbier")
-        (:copyright-year . "2019–2022")
+        (:copyright-year . "2019–2023")
 	(:project-filename . "org.melusina.confidence")
         (:project-name . "Confidence")
 	(:project-description . "A Simple Interactive Test Framework for Common Lisp")
@@ -34,11 +34,5 @@
 	    "a complicated setup, and with explicit functions and decisions."))
         (:homepage . "https://github.com/melusina-org/cl-confidence")
         (:license . :mit)))
-;;;
-;;; Confidence
-;;;
-
-(ql:quickload "org.melusina.confidence/testsuite")
-(setf org.melusina.confidence:*testcase-interactive-p* t)
 
 ;;;; End of file `setup.lisp'
