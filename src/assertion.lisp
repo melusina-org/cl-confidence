@@ -209,7 +209,36 @@ failed."
 		    unexpected-condition)))))))
 
 (set-assertion-properties 'assert-condition '(form condition &optional slots &body body))
-			  
+
+
+;;;;
+;;;; Character Assertions
+;;;;
+
+(define-assertion assert-char= (character1 character2)
+  "Assert that CHARACTER1 and CHARACTER2 satisfy the CHAR= predicate."
+  (char= character1 character2))
+
+(define-assertion assert-char-equal (character1 character2)
+  "Assert that CHARACTER1 and CHARACTER2 satisfy the CHAR-EQUAL predicate."
+  (char-equal character1 character2))
+
+(define-assertion assert-char< (character1 character2)
+  "Assert that CHARACTER1 and CHARACTER2 satisfy the CHAR< predicate."
+  (char< character1 character2))
+
+(define-assertion assert-char<= (character1 character2)
+  "Assert that CHARACTER1 and CHARACTER2 satisfy the CHAR<= predicate."
+  (char<= character1 character2))
+
+(define-assertion assert-char> (character1 character2)
+  "Assert that CHARACTER1 and CHARACTER2 satisfy the CHAR> predicate."
+  (char> character1 character2))
+
+(define-assertion assert-char>= (character1 character2)
+  "Assert that CHARACTER1 and CHARACTER2 satisfy the CHAR>= predicate."
+  (char>= character1 character2))
+
 
 ;;;;
 ;;;; String Assertions

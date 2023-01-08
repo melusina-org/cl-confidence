@@ -108,6 +108,7 @@ function. A special kind of function, but a function.
 * Define Assertions::
 * Basic Assertions::
 * Condition Assertions::
+* Character Assertions::
 * String Assertions::
 * List Assertions::
 * Vector Assertions::
@@ -134,12 +135,22 @@ function. A special kind of function, but a function.
 @include include/fun-org.melusina.confidence-assert-lt-equals.texinfo
 @include include/fun-org.melusina.confidence-assert-gt-equals.texinfo
 
-@node Condition Assertions, String Assertions, Basic Assertions, Assertions
+@node Condition Assertions, Character Assertions, Basic Assertions, Assertions
 @section Condition Assertions
 
 @include include/macro-org.melusina.confidence-assert-condition.texinfo
 
-@node String Assertions, List Assertions, Condition Assertions, Assertions
+@node Character Assertions, String Assertions, Condition Assertions, Assertions
+@section Character Assertions
+
+@include include/fun-org.melusina.confidence-assert-char-equal.texinfo
+@include include/fun-org.melusina.confidence-assert-char-equals.texinfo
+@include include/fun-org.melusina.confidence-assert-char-gt.texinfo
+@include include/fun-org.melusina.confidence-assert-char-gt-equals.texinfo
+@include include/fun-org.melusina.confidence-assert-char-lt.texinfo
+@include include/fun-org.melusina.confidence-assert-char-lt-equals.texinfo
+
+@node String Assertions, List Assertions, Character Assertions, Assertions
 @section String Assertions
 
 @include include/fun-org.melusina.confidence-assert-string-equal.texinfo

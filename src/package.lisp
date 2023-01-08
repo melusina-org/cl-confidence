@@ -42,18 +42,25 @@
    #:assert-equal
    #:assert=
    #:assert<
-   #:assert>
    #:assert<=
+   #:assert>
    #:assert>=
    ;; Condition Assertions
    #:assert-condition
+   ;; Character Assertions
+   #:assert-char=
+   #:assert-char-equal
+   #:assert-char<
+   #:assert-char<=
+   #:assert-char>
+   #:assert-char>=
    ;; String Assertions
    #:assert-string-match
    #:assert-string-equal
    #:assert-string=
    #:assert-string<
-   #:assert-string>
    #:assert-string<=
+   #:assert-string>
    #:assert-string>=
    ;; List Assertions
    #:assert-list-equal

@@ -47,6 +47,40 @@
   (ensure-failure
    (assert-condition (error "A simple error") nil)))
 
+(define-testcase testsuite-assert-char* ()
+  (ensure-failure
+   (assert-char= #\a #\b))
+  (ensure-success
+   (assert-char= #\a #\a))
+  (ensure-failure
+   (assert-char= #\A #\a))
+  (ensure-failure
+   (assert-char-equal #\a #\b))
+  (ensure-success
+   (assert-char-equal #\a #\a))
+  (ensure-success
+   (assert-char-equal #\A #\a))
+  (ensure-failure
+   (assert-char< #\b #\a))
+  (ensure-success
+   (assert-char< #\a #\b))
+  (ensure-failure
+   (assert-char<= #\b #\a))
+  (ensure-success
+   (assert-char<= #\a #\b))
+  (ensure-success
+   (assert-char<= #\a #\a))
+  (ensure-failure
+   (assert-char> #\a #\b))
+  (ensure-success
+   (assert-char> #\b #\a))
+  (ensure-failure
+   (assert-char>= #\a #\b))
+  (ensure-success
+   (assert-char>= #\b #\a))
+  (ensure-success
+   (assert-char>= #\b #\b)))
+
 (define-testcase testsuite-assert-string* ()
   ;; Mask the following assertion
   ;;  which is currently triggering a SIGILL (illegal CPU instruction)
@@ -104,6 +138,7 @@
 (define-testcase testsuite-assertion ()
   (testsuite-basic-assertions)
   (testsuite-assert-condition)
+  (testsuite-assert-char*)
   (testsuite-assert-string*)
   (testsuite-list-as-set)
   (testsuite-assert-vector*)
