@@ -40,6 +40,7 @@
    #:assert-eq
    #:assert-eql
    #:assert-equal
+   #:assert-equalp
    #:assert=
    #:assert<
    #:assert<=

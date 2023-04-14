@@ -129,6 +129,7 @@ function. A special kind of function, but a function.
 @include include/fun-org.melusina.confidence-assert-eq.texinfo
 @include include/fun-org.melusina.confidence-assert-eql.texinfo
 @include include/fun-org.melusina.confidence-assert-equal.texinfo
+@include include/fun-org.melusina.confidence-assert-equalp.texinfo
 @include include/fun-org.melusina.confidence-assert-equals.texinfo
 @include include/fun-org.melusina.confidence-assert-lt.texinfo
 @include include/fun-org.melusina.confidence-assert-gt.texinfo

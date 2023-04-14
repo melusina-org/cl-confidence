@@ -144,6 +144,10 @@ This does not compare EXPR to T as a generalised boolean, cf. ASSERT-T*."
   "Assert that A and B satisfy the EQUAL predicate."
   (equal a b))
 
+(define-assertion assert-equalp (a b)
+  "Assert that A and B satisfy the EQUALP predicate."
+  (equal a b))
+
 (define-assertion assert= (a b)
   "Assert that A and B satisfy the = predicate."
   (= a b))
