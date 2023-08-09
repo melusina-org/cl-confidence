@@ -114,16 +114,21 @@ This is the first element of the FORM.")
 
 (defun describe-object-arguments (instance stream)
   (labels
-      ((composed-argument-p (form)
+      ((symbol-prefix (name)
+	 (if (keywordp name) ":" ""))
+       (composed-argument-p (form)
 	 (not (atom form)))
        (format-atom-argument (name value)
-	 (format stream "~&  ~A: ~S~%~%" (symbol-name name) value))
+	 (format stream "~&  ~A~A: ~S~%~%"
+		 (symbol-prefix name) (symbol-name name) value))
        (format-condition-argument (name form value)
-	 (format stream "~&  ~A: ~S => CONDITION" (symbol-name name) form)
+	 (format stream "~&  ~A~A: ~S => CONDITION"
+		 (symbol-prefix name) (symbol-name name) form)
 	 (format stream "~&    The evaluation of this form yielded a condition~%~%")
 	 (describe value stream))
        (format-composed-argument (name form value)
-	 (format stream "~&  ~A: ~S => ~S~%~%" (symbol-name name) form value))
+	 (format stream "~&  ~A~A: ~S => ~S~%~%"
+		 (symbol-prefix name) (symbol-name name) form value))
        (format-argument (name form value)
 	 (cond
 	   ((typep value 'condition)
@@ -133,15 +138,30 @@ This is the first element of the FORM.")
 	   ((atom form)
 	    (format-atom-argument name value))
 	   (t
-	    (error "Cannot describe argument ~S => ~S" form value)))))
+	    (error "Cannot describe argument ~S => ~S" form value))))
+       (format-positional-arguments (names forms values)
+	 (loop :for name :in names
+	       :for form :in forms
+	       :for value :in values
+	       :when (eq name '&key)
+	       :return nil
+	       :do (format-argument name form value)))
+       (format-key-arguments (names forms values)
+	 (let ((key-index (position '&key names)))
+	   (unless key-index
+	     (return-from format-key-arguments))
+	   (loop :for (form-name form) :on (subseq forms key-index) :by #'cddr
+		 :for (value-name value) :on (subseq values key-index) :by #'cddr
+		 :for name = (if (eq form-name value-name)
+			       form-name
+			       (error "Value and form name differ."))
+		 :do (format-argument name form value)))))
     (with-slots (name form argument-values argument-names) instance
       (when argument-names
 	(format stream
 		"~&  In this call, forms in argument position evaluate as:~%~%"))
-      (loop :for name :in argument-names
-	    :for form :in (rest form)
-	    :for value :in argument-values
-	    :do (format-argument name form value)))))  
+      (format-positional-arguments argument-names (rest form) argument-values)
+      (format-key-arguments argument-names (rest form) argument-values))))
 
 (defmethod describe-object :after ((instance assertion-failure) stream)
   (format stream "~&Outcome: Failure")

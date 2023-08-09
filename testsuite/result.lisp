@@ -28,6 +28,10 @@
 		 :form '(confidence:assert-t nil)
 		 :description "The assertion (ASSERT-T EXPR) is true, iff EXPR is T."))
 
+(defun make-some-assertion-failure-with-keyword-argument ()
+  (confidence::supervise-assertion
+   (confidence:assert-float-is-essentially-equal 1.0 2.0 :inaccuracy 1)))
+
 (defun make-some-assertion-condition ()
   (make-instance 'confidence::assertion-condition
 		 :name 'confidence:assert-t
@@ -50,6 +54,7 @@
   (loop :for make-some-result
 	:in '(make-some-assertion-success
 	      make-some-assertion-failure
+	      make-some-assertion-failure-with-keyword-argument
 	      make-some-assertion-condition
 	      make-some-testcase-result)
 	:do
