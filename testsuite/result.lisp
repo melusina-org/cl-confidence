@@ -13,14 +13,14 @@
 
 (in-package #:org.melusina.confidence/testsuite)
 
-(defun make-assertion-success-example ()
+(defun make-some-assertion-success ()
   (make-instance 'confidence::assertion-success
 		 :name 'confidence:assert-t
 		 :argument-values '(t)
 		 :argument-names '(expr)
 		 :form '(confidence:assert-t t)))
 
-(defun make-assertion-failure-example ()
+(defun make-some-assertion-failure ()
   (make-instance 'confidence::assertion-failure
 		 :name 'confidence:assert-t
 		 :argument-values '(nil)
@@ -28,7 +28,7 @@
 		 :form '(confidence:assert-t nil)
 		 :description "The assertion (ASSERT-T EXPR) is true, iff EXPR is T."))
 
-(defun make-assertion-condition-example ()
+(defun make-some-assertion-condition ()
   (make-instance 'confidence::assertion-condition
 		 :name 'confidence:assert-t
 		 :argument-values nil
@@ -36,20 +36,33 @@
 		 :form '(confidence:assert-t (error "Some error"))
 		 :condition (make-instance 'simple-error :format-control "Some error")))
 
-(defun make-testcase-result-example ()
+(defun make-some-testcase-result ()
   (make-instance 'confidence::testcase-result
-		 :name 'make-testcase-result-example
+		 :name 'make-some-testcase-result
 		 :argument-values nil
 		 :argument-names nil
 		 :results (list
-			   (make-assertion-success-example)
-			   (make-assertion-failure-example)
-			   (make-assertion-condition-example))))
+			   (make-some-assertion-success)
+			   (make-some-assertion-failure)
+			   (make-some-assertion-condition))))
 
-(define-testcase validate-result ()
-  (assert-eq 3 (slot-value (make-testcase-result-example) 'confidence::total)))
+(define-testcase validate-result-can-be-described ()
+  (loop :for make-some-result
+	:in '(make-some-assertion-success
+	      make-some-assertion-failure
+	      make-some-assertion-condition
+	      make-some-testcase-result)
+	:do
+	(assert-string-match
+	 (with-output-to-string (buffer)
+	   (describe (funcall make-some-result) buffer))
+	 "*Name: *")))
+
+(define-testcase validate-result-total ()
+  (assert-eq 3 (slot-value (make-some-testcase-result) 'confidence::total)))
 
 (define-testcase testsuite-result ()
-  (validate-result))
+  (validate-result-can-be-described)
+  (validate-result-total))
 
 ;;;; End of file `result.lisp'

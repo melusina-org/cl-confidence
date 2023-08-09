@@ -21,6 +21,7 @@
 (defclass result nil
   ((path
     :initarg :path
+    :initform nil
     :documentation "The path of the result in the test hierarchy.
 This is the stack of preceding testcases in the test hierarchy."))
   (:documentation "The abstract class of testcase results."))
