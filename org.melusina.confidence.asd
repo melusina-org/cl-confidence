@@ -39,4 +39,13 @@
 		 (:file "testcase")
 		 (:file "entrypoint")))))
 
+(asdf:defsystem #:org.melusina.confidence/development
+  :description "Development tools for Confidence"
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:org.melusina.atelier)
+  :components
+  ((:module "libexec/lisp"
+    :components ((:file "development")))))
+
 ;;;; End of file `org.melusina.confidence.asd'
