@@ -5,7 +5,9 @@ simplicty. It avoids bureacracy and makes it easy to work
 interactively, without a complicated setup, and with explicit
 functions and decisions.
 
-*This software is Copyright © 2019–2022 Michaël Le Barbier and
+[![Continuous Integration](https://github.com/melusina-org/cl-confidence/actions/workflows/continuous-integration.yaml/badge.svg)](https://github.com/melusina-org/cl-confidence/actions/workflows/continuous-integration.yaml)
+
+*This software is Copyright © 2019–2023 Michaël Le Barbier and
 is distributed under the terms described in the LICENSE file.*
 
 # Introduction for new users
