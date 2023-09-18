@@ -1,4 +1,4 @@
-;;;; development.lisp — Project Development for El Cid
+;;;; development.lisp — Project Development for Confidence
 
 ;;;; Confidence (https://github.com/melusina-org/cl-confidence)
 ;;;; This file is part of Confidence.
