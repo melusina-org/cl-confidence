@@ -18,7 +18,7 @@
 	  nil)
 	(confidence::*current-testcase-result*
 	  nil)
-	(confidence:*testcase-interactive-p* t))
+	(confidence:*testcase-interaction-mode* :batch))
     (funcall (intern "VALIDATE-SUPERVISE-ASSERTION"
 		     (find-package "ORG.MELUSINA.CONFIDENCE/TESTSUITE")))))
 

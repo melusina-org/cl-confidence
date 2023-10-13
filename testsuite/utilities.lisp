@@ -28,13 +28,15 @@
 
 (dolist (ensure-macro '(ensure-success ensure-failure ensure-condition))
   (setf (get ensure-macro :org.melusina.confidence/testcase) t))
-
+			 
 (define-testcase ensure-success-1 (result)
   (assert-type result 'assertion-success))
 
 (defmacro ensure-success (form)
   "Ensure that FORM yield an assertion success."
-  `(ensure-success-1 (confidence::supervise-assertion ,(ensure-unwrap form))))
+  `(ensure-success-1
+    (confidence::supervise-assertion
+     ,(ensure-unwrap form))))
 
 (define-testcase ensure-failure-1 (result &optional description-pattern)
   (assert-type result 'assertion-failure)
