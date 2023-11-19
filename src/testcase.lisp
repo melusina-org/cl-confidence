@@ -263,9 +263,13 @@ When *TESTCASE-INTERACTIVE-P* is NIL, batch mode is assumed and a summary of
 failures is printed on stdout and the program is exited with a status
 reflecting the failure or success of tests."
   (set-testcase-properties testcase-name)
-  `(prog1
-       (defun ,testcase-name ,testcase-args
-	 (declare (optimize (safety 3) (debug 3)))
+  (multiple-value-bind (remaining-forms declarations doc-string)
+      (alexandria:parse-body body :documentation t)
+    `(prog1
+	 (defun ,testcase-name ,testcase-args
+	   ,@(when doc-string (list doc-string))
+	   ,@declarations
+	   (declare (optimize (safety 3) (debug 3)))
 	 (let ((*testsuite-id*
 		 (or *testsuite-id* (make-testsuite-id)))
 	       (*current-testcase-result*
@@ -276,10 +280,10 @@ reflecting the failure or success of tests."
 		  :path *testcase-path*))
 	       (*testcase-path*
 		 (cons (quote ,testcase-name) *testcase-path*)))
-	   ,@(define-testcase/wrap-confidence-forms body)
+	   ,@(define-testcase/wrap-confidence-forms remaining-forms)
 	   (maybe-perform-testsuite-epilogue)))
-     (export (quote ,testcase-name))
-     (set-testcase-properties ',testcase-name)))
+       (export (quote ,testcase-name))
+       (set-testcase-properties ',testcase-name))))
 
 (defun list-testcases (&optional package-designator)
   "List testcases exported by PACKAGE-DESIGNATOR."
