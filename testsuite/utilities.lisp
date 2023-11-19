@@ -64,6 +64,25 @@ has the required type."
 
 
 ;;;;
+;;;; WITH-TESTCASE-RESULT
+;;;;
+
+(defmacro with-testcase-result (var form &body body)
+  "Bind the testcase result of FORM in VAR and execute BODY."
+  `(let ((,var
+	   (let ((*standard-output*
+		   (make-string-output-stream))
+		 (confidence::*testcase-path*
+		   '(with-testcase-result))
+		 (confidence::*current-testcase-result*
+		   nil)
+		 (confidence:*testcase-interactive-p*
+		   t))
+	     ,form)))
+     ,@body))
+
+
+;;;;
 ;;;; Testing STRING-MATCH
 ;;;;
 

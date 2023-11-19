@@ -40,6 +40,9 @@ Usually TESTSUITE but commonly used values are ACCEPTANCE, INTEGRATION, PREFLIGH
 (defparameter *testsuite-id* nil
   "A unique identfier for the current testsuite run batch.")
 
+(defparameter *last-testsuite-result* nil
+  "The results of the last testsuite that ran.")
+
 
 ;;;;
 ;;;; TESTSUITE-IDENTIFICATION
@@ -192,14 +195,26 @@ guarantees that conditions triggered by the evaluation of arguments are recorded
 (defun define-testcase/wrap-confidence-forms (body-forms)
   "Walks through BODY-FORMS and wrap assertion forms in a RESTART-CASE."
   (labels
-      ((is-funcall-p (form)
+      ((function-name (form)
+	 (cond
+	   ((symbolp form)
+	    form)
+	   ((and (listp form) (eq (first form) 'quote))
+	    (second form))
+	   ((and (listp form) (eq (first form) 'function))
+	    (second form))))
+       (is-funcall-p (form)
+	 "Predicate recognising forms which are function calls.
+When the form is a function call, the returned value is the
+symbol of this function."
          (when (and (listp form) (not (null form)) (symbolp (first form)) (listp (rest form)))
            (case (first form)
              ((funcall apply)
-              (second form))
+              (function-name (second form)))
              (t (first form)))))
        (is-assert-name-p (symbol)
          (and
+	  (symbolp symbol)
 	  (>= (length (symbol-name symbol)) 7)
           (and (string= (symbol-name symbol) "ASSERT" :end1 6)
                (position (char (symbol-name symbol) 6) "-=<>"))
@@ -242,13 +257,16 @@ guarantees that conditions triggered by the evaluation of arguments are recorded
       (describe result stream))))
 
 (defun maybe-perform-testsuite-epilogue ()
-  "When invoked from a testsuite, prints datails about the results."
+  "When invoked from a testsuite, performs testsuite epilogue.
+The testsuite epilogue prints details about the current testcase
+result and saves the result as the *LAST-TESTSUITE-RESULT*."
   (when (< 1 (length *testcase-path*))
-    (return-from maybe-perform-testsuite-epilogue *current-testcase-result*))
+    (return-from maybe-perform-testsuite-epilogue
+      *current-testcase-result*))
   (when (>= 1 (length *testcase-path*))
-    (setf *testsuite-last-result* *current-testcase-result*)
-    (describe *testsuite-last-result*)
-    (format t "~&")))
+    (setf *last-testsuite-result* *current-testcase-result*)
+    (describe *last-testsuite-result*)
+    (terpri)))
 
 (defmacro define-testcase (testcase-name testcase-args &body body)
   "Define a test case function TESTCASE-NAME, accepting TESTCASE-ARGS with BODY.
@@ -270,18 +288,18 @@ reflecting the failure or success of tests."
 	   ,@(when doc-string (list doc-string))
 	   ,@declarations
 	   (declare (optimize (safety 3) (debug 3)))
-	 (let ((*testsuite-id*
-		 (or *testsuite-id* (make-testsuite-id)))
-	       (*current-testcase-result*
-		 (make-instance
-		  'testcase-result
-		  :results nil
-		  :name (quote ,testcase-name)
-		  :path *testcase-path*))
-	       (*testcase-path*
-		 (cons (quote ,testcase-name) *testcase-path*)))
-	   ,@(define-testcase/wrap-confidence-forms remaining-forms)
-	   (maybe-perform-testsuite-epilogue)))
+	   (let ((*testsuite-id*
+		   (or *testsuite-id* (make-testsuite-id)))
+		 (*current-testcase-result*
+		   (make-instance
+		    'testcase-result
+		    :results nil
+		    :name (quote ,testcase-name)
+		    :path *testcase-path*))
+		 (*testcase-path*
+		   (cons (quote ,testcase-name) *testcase-path*)))
+	     ,@(define-testcase/wrap-confidence-forms remaining-forms)
+	     (maybe-perform-testsuite-epilogue)))
        (export (quote ,testcase-name))
        (set-testcase-properties ',testcase-name))))
 
@@ -296,14 +314,14 @@ reflecting the failure or success of tests."
   (let ((exit-code-success 0)
 	(exit-code-failure 1)
 	(exit-code-configuration 78))
-    (unless *testsuite-last-result*
+    (unless *last-testsuite-result*
       (format t "~&Error: There was no testsuite performed.~%")
       (uiop:quit exit-code-configuration))
-    (with-slots (success total) *testsuite-last-result*
+    (with-slots (success total) *last-testsuite-result*
       (when (= 0 total)
 	(format t "~&Error: There was a testsuite performed but no test result recorded.~%")
 	(uiop:quit exit-code-configuration))
-      (export-testcase-result *testsuite-last-result*)
+      (export-testcase-result *last-testsuite-result*)
       (if (< success total)
 	  (uiop:quit exit-code-failure)
 	  (uiop:quit exit-code-success)))))

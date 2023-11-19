@@ -13,15 +13,6 @@
 
 (in-package #:org.melusina.confidence/testsuite)
 
-(defun make-actual-testcase-result ()
-  (let ((confidence::*testcase-path*
-	  nil)
-	(confidence::*current-testcase-result*
-	  nil)
-	(confidence:*testcase-interactive-p* t))
-    (funcall (intern "VALIDATE-SUPERVISE-ASSERTION"
-		     (find-package "ORG.MELUSINA.CONFIDENCE/TESTSUITE")))))
-
 (define-testcase validate-supervise-assertion ()
   ;; Mask the following assertion
   ;;  which is currently triggering a SIGILL (illegal CPU instruction)
@@ -40,6 +31,9 @@
     (assert-t (error "An intentional error condition")))
    'assertion-condition))
 
+(define-testcase a-successful-testsuite ()
+  (assert-t t))
+
 (define-testcase a-failing-argument-testsuite ()
   (assert-t nil)
   (assert-eq 0 (+ 1 1))
@@ -50,12 +44,27 @@
   (assert-t nil)
   (assert-eq 0 (+ 1 1)))
 
+(define-testcase a-succesful-testsuite-with-function-calls ()
+  (funcall 'a-successful-testsuite)
+  (funcall #'a-successful-testsuite)
+  (apply 'a-successful-testsuite nil)
+  (apply #'a-successful-testsuite nil)
+  (loop :for a :in '(1 2)
+	:do (funcall #'a-successful-testsuite)))
+
 (define-testcase validate-define-testcase ()
-  (let ((testcase-result
-	  (make-actual-testcase-result)))
-    (assert-eq 3 (length (slot-value testcase-result 'confidence::results)))))
+  (with-testcase-result testcase-result (validate-supervise-assertion)
+    (assert-type testcase-result 'confidence:testcase-result)
+    (assert-eq 2 (length (slot-value testcase-result 'confidence::results)))))
+
+(define-testcase ensure-that-define-testcase-recognises-sharpsign-single-quote-in-function-names ()
+  (with-testcase-result testcase-result (a-succesful-testsuite-with-function-calls)
+    (assert-type testcase-result 'confidence:testcase-result)
+    (assert-eq 6 (length (slot-value testcase-result 'confidence::results)))))
 
 (define-testcase testsuite-testcase ()
+  (validate-define-testcase)
+  (ensure-that-define-testcase-recognises-sharpsign-single-quote-in-function-names)
   (validate-supervise-assertion))
 
 ;;;; End of file `testcase.lisp'
