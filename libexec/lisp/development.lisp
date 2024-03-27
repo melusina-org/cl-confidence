@@ -3,7 +3,7 @@
 ;;;; Confidence (https://github.com/melusina-org/cl-confidence)
 ;;;; This file is part of Confidence.
 ;;;;
-;;;; Copyright © 2019–2023 Michaël Le Barbier
+;;;; Copyright © 2019–2024 Michaël Le Barbier
 ;;;; All rights reserved.
 
 ;;;; This file must be used under the terms of the MIT License.
@@ -32,7 +32,7 @@
 
 (defparameter *parameter-bindings*
       '((:copyright-holder . "Michaël Le Barbier")
-        (:copyright-year . "2019–2023")
+        (:copyright-year . "2019–2024")
 	(:project-filename . "org.melusina.confidence")
         (:project-name . "Confidence")
 	(:project-description . "A Simple Interactive Test Framework for Common Lisp")
