@@ -54,7 +54,8 @@
       #p"src"
       #p"subr"
       #p"testsuite"
-      #p"libexec/lisp/development.lisp"))))
+      #p"libexec/lisp/development.lisp"
+      #p"libexec/lisp/user.lisp"))))
 
 #+quicklisp
 (defun reload ()

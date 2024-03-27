@@ -48,4 +48,18 @@
   ((:module "libexec/lisp"
     :components ((:file "development")))))
 
+(asdf:defsystem #:org.melusina.confidence/user
+  :description "System for Confidence Users"
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:org.melusina.confidence
+	       #:org.melusina.confidence/testsuite
+	       #:org.melusina.confidence/development)
+  :components
+  ((:module "libexec"
+    :components
+    ((:module "lisp"
+      :components
+      ((:file "user")))))))
+
 ;;;; End of file `org.melusina.confidence.asd'
