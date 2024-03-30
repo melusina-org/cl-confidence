@@ -42,19 +42,19 @@ are also available at https://opensource.org/licenses/MIT
 @c We use @andkey, etc to escape & from TeX in lambda lists --
 @c so we need to define them for info as well.
 @macro andallowotherkeys
-&allow-other-keys
+&allow-other-keys@tie{}
 @end macro
 @macro andoptional
-&optional
+&optional@tie{}
 @end macro
 @macro andrest
-&rest
+&rest@tie{}
 @end macro
 @macro andkey
-&key
+&key@tie{}
 @end macro
 @macro andbody
-&body
+&body@tie{}
 @end macro
 
 @ifnottex
