@@ -29,4 +29,8 @@
   (testsuite-assertion)
   (testsuite-testcase))
 
+(define-testcase run-interactive-tests ()
+  "Run interactive tests."
+  (testsuite-interactive))
+
 ;;;; End of file `entrypoint.lisp'

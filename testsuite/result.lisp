@@ -13,61 +13,23 @@
 
 (in-package #:org.melusina.confidence/testsuite)
 
-(defun make-some-assertion-success ()
-  (make-instance 'confidence::assertion-success
-		 :name 'confidence:assert-t
-		 :argument-values '(t)
-		 :argument-names '(expr)
-		 :form '(confidence:assert-t t)))
-
-(defun make-some-assertion-failure ()
-  (make-instance 'confidence::assertion-failure
-		 :name 'confidence:assert-t
-		 :argument-values '(nil)
-		 :argument-names nil
-		 :form '(confidence:assert-t nil)
-		 :description "The assertion (ASSERT-T EXPR) is true, iff EXPR is T."))
-
-(defun make-some-assertion-failure-with-keyword-argument ()
-  (confidence::supervise-assertion
-   (confidence:assert-float-is-essentially-equal 1.0 2.0 :inaccuracy 1)))
-
-(defun make-some-assertion-condition ()
-  (make-instance 'confidence::assertion-condition
-		 :name 'confidence:assert-t
-		 :argument-values nil
-		 :argument-names nil
-		 :form '(confidence:assert-t (error "Some error"))
-		 :condition (make-instance 'simple-error :format-control "Some error")))
-
-(defun make-some-testcase-result ()
-  (make-instance 'confidence::testcase-result
-		 :name 'make-some-testcase-result
-		 :argument-values nil
-		 :argument-names nil
-		 :results (list
-			   (make-some-assertion-success)
-			   (make-some-assertion-failure)
-			   (make-some-assertion-condition))))
-
-(define-testcase validate-result-can-be-described ()
-  (loop :for make-some-result
-	:in '(make-some-assertion-success
-	      make-some-assertion-failure
-	      make-some-assertion-failure-with-keyword-argument
-	      make-some-assertion-condition
-	      make-some-testcase-result)
-	:do
-	(assert-string-match
-	 (with-output-to-string (buffer)
-	   (describe (funcall make-some-result) buffer))
-	 "*Name: *")))
-
-(define-testcase validate-result-total ()
-  (assert-eq 3 (slot-value (make-some-testcase-result) 'confidence::total)))
+(define-testcase validate-outcome-can-be-described ()
+  (let ((testcase-outcome
+	  (confidence::make-testcase-outcome
+	   :path '(some imaginative testcase path)
+	   :name 'testcase-name
+	   :argument-values '(1 :a 'b '(nil nil nil))
+	   :total 100
+	   :success 80
+	   :failure 17
+	   :condition 3)))
+    (assert-type testcase-outcome 'confidence::testcase-outcome)
+    (assert-string-match
+     (with-output-to-string (buffer)
+       (describe testcase-outcome buffer))
+     "*Name: *")))
 
 (define-testcase testsuite-result ()
-  (validate-result-can-be-described)
-  (validate-result-total))
+  (validate-outcome-can-be-described))
 
 ;;;; End of file `result.lisp'

@@ -16,15 +16,26 @@
   (:export
    #:quit
    ;; Results
-   #:assertion-success
-   #:assertion-failure
-   #:assertion-condition
-   #:testcase-result
-   #:record-result
+   #:testcase-outcome
+   #:testcase-path
+   #:testcase-name
+   #:testcase-total
+   #:testcase-success
+   #:testcase-failure
+   #:testcase-condition
    ;; Testcases
+   #:assertion-path
+   #:assertion-name
+   #:assertion-argument-names
+   #:assertion-argument-values
+   #:assertion-form
+   #:assertion-type
+   #:assertion-description
+   #:assertion-condition
    #:define-testcase
    #:without-confidence
    #:*testcase-interactive-p*
+   #:*testcase-describe-failed-assertions*
    #:*testsuite-name*
    #:*testsuite-id*
    #:*testsuite-last-result*

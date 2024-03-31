@@ -14,257 +14,85 @@
 (in-package #:org.melusina.confidence)
 
 
-;;;
-;;; RESULT
-;;;
+;;;;
+;;;; TESTCASE-OUTCOME
+;;;;
 
-(defclass result nil
+(defclass testcase-outcome ()
   ((path
     :initarg :path
+    :reader testcase-path
     :initform nil
     :documentation "The path of the result in the test hierarchy.
-This is the stack of preceding testcases in the test hierarchy."))
-  (:documentation "The abstract class of testcase results."))
-
-
-;;;
-;;; ASSERTION-RESULT
-;;;
-
-(defclass assertion-result (result)
-  ((type
-    :initarg :type
-    :initform :function
-    :documentation
-    "One of the keywords :FUNCTION or :MACRO according to the nature of the assertion.")
+This is the stack of preceding testcases in the test hierarchy.")
    (name
     :initarg :name
-    :initform (error "An ASSERTION-RESULT requires a :NAME.")
-    :documentation
-    "The symbol designating the assertion that yielded this result.
-This is the first element of the FORM.")
-   (argument-values
-    :initarg :argument-values
-    :initform (error "An ASSERTION-RESULT requires an :ARGUMENT-VALUES list.")
-    :documentation
-    "The list of evaluated arguments for the assertion.")
-   (argument-names
-    :initarg :argument-names
-    :initform (error "An ASSERTION-RESULT requires an :ARGUMENT-NAMES list.")
-    :documentation
-    "The list of argument names for the assertion.")
-   (form
-    :initarg :form
-    :initform (error "An ASSERTION-RESULT requires a :FORM.")
-    :documentation
-    "The form for the assertion invocation."))
-  (:documentation
-   "A class capturing an assertion result."))
-
-(defmethod describe-object ((instance assertion-result) stream)
-  (format stream "~&~A is an assertion result of type ~A." instance (type-of instance))
-  (with-slots (path type name argument-values form) instance
-    (format stream "~&Type: ~S" type)
-    (format stream "~&Name: ~S" name)
-    (when path
-      (format stream "~&Path:~%")
-      (loop :for path-element :in (reverse path)
-	    :for path-level :from 1
-	    :do (dotimes (_ (* 2 path-level)) (write-char #\Space stream))
-	    :do (format stream "~S~%" path-element)))
-    (cond
-      ((> (length argument-values) 1)
-       (format stream "~&Arguments:")
-       (loop :for argument :in argument-values
-	     :for i = 1 :then (1+ i)
-	     :do (format stream "~& Argument #~A: ~S" i argument)))
-      ((= (length argument-values) 1)
-       (format stream "~&Argument: ~S" (first argument-values))))
-    (format stream "~&Form: ~S" form))
-  (values))
-
-
-;;;
-;;; ASSERTION-SUCCESS
-;;;
-
-(defclass assertion-success (assertion-result)
-  nil
-  (:documentation
-   "A class capturing an assertion success."))
-
-(defmethod describe-object :after ((instance assertion-success) stream)
-  (declare (ignore instance))
-  (format stream "~&Outcome: Success")
-  (values))
-
-
-;;;
-;;; ASSERTION-FAILURE
-;;;
-
-(defclass assertion-failure (assertion-result)
-  ((description
-    :initarg :description
-    :initform (error "An ASSERTION-FAILURE requires a :DESCRIPTION.")
-    :documentation
-    "A detailed description on why the assertion failed."))
-  (:documentation
-   "A class capturing an assertion failure."))
-
-(defun describe-object-arguments (instance stream)
-  (labels
-      ((symbol-prefix (name)
-	 (if (keywordp name) ":" ""))
-       (composed-argument-p (form)
-	 (not (atom form)))
-       (format-atom-argument (name value)
-	 (format stream "~&  ~A~A: ~S~%~%"
-		 (symbol-prefix name) (symbol-name name) value))
-       (format-condition-argument (name form value)
-	 (format stream "~&  ~A~A: ~S => CONDITION"
-		 (symbol-prefix name) (symbol-name name) form)
-	 (format stream "~&    The evaluation of this form yielded a condition~%~%")
-	 (describe value stream))
-       (format-composed-argument (name form value)
-	 (format stream "~&  ~A~A: ~S => ~S~%~%"
-		 (symbol-prefix name) (symbol-name name) form value))
-       (format-argument (name form value)
-	 (cond
-	   ((typep value 'condition)
-	    (format-condition-argument name form value))
-	   ((composed-argument-p form)
-	    (format-composed-argument name form value))
-	   ((atom form)
-	    (format-atom-argument name value))
-	   (t
-	    (error "Cannot describe argument ~S => ~S" form value))))
-       (format-positional-arguments (names forms values)
-	 (loop :for name :in names
-	       :for form :in forms
-	       :for value :in values
-	       :when (eq name '&key)
-	       :return nil
-	       :do (format-argument name form value)))
-       (format-key-arguments (names forms values)
-	 (let ((key-index (position '&key names)))
-	   (unless key-index
-	     (return-from format-key-arguments))
-	   (loop :for (form-name form) :on (subseq forms key-index) :by #'cddr
-		 :for (value-name value) :on (subseq values key-index) :by #'cddr
-		 :for name = (if (eq form-name value-name)
-			       form-name
-			       (error "Value and form name differ."))
-		 :do (format-argument name form value)))))
-    (with-slots (name form argument-values argument-names) instance
-      (when argument-names
-	(format stream
-		"~&  In this call, forms in argument position evaluate as:~%~%"))
-      (format-positional-arguments argument-names (rest form) argument-values)
-      (format-key-arguments argument-names (rest form) argument-values))))
-
-(defmethod describe-object :after ((instance assertion-failure) stream)
-  (format stream "~&Outcome: Failure")
-  (with-slots (description) instance
-    (format stream "~&Description: ~A" description)
-    (describe-object-arguments instance stream))
-  (values))
-
-
-;;;
-;;; ASSERTION-CONDITION
-;;;
-
-(defclass assertion-condition (assertion-result)
-  ((condition
-    :initarg :condition
-    :initform (error "An ASSERTION-CONDITION requires a :CONDITION.")))
-  (:documentation
-   "A class capturing an assertion that signaled a condition instead
-of returning normally."))
-
-(defmethod describe-object :after ((instance assertion-condition) stream)
-  (format stream "~&Outcome: Condition")
-  (with-slots (condition argument-values) instance
-    (if (member-if (lambda (argument-value)  (typep argument-value 'condition)) argument-values)
-	(progn
-	  (format stream "~&Description:")	  )
-	(progn
-	  (format stream "~&Condition: ~S" condition)
-	  (describe condition stream)))
-    (describe-object-arguments instance stream))
-  (values))
-
-
-
-;;;
-;;; TESTCASE-RESULT
-;;;
-
-(defclass testcase-result (result)
-  ((name
-    :initarg :name
-    :initform (error "A TESTCASE-RESULT requires a :NAME."))
+    :reader testcase-name
+    :initform (error "A TESTCASE-OUTCOME requires a :NAME."))
    (argument-values
     :initarg :argument-values
     :initform nil
+    :reader testcase-argument-values
     :documentation
     "The list of evaluated arguments for the testcase.")
    (total
+    :initarg :total
     :initform 0
+    :reader testcase-total
     :documentation
     "The total number of assertions in the testcase and its descendants.")
    (success
+    :initarg :success
     :initform 0
+    :reader testcase-success
     :documentation
     "The total number of assertions that yielded a success in the testcase and its descendants.")
    (failure
+    :initarg :failure
     :initform 0
+    :reader testcase-failure
     :documentation
     "The total number of assertions that yielded a failure in the testcase and its descendants.")
    (condition
+    :initarg :condition
     :initform 0
+    :reader testcase-condition
     :documentation
-    "The total number of assertions that yielded a condition in the testcase and its descendants.")
-   (results
-    :initarg :results
-    :initform (error "A TESTCASE-RESULT requires a list of :RESULTS.")
-    :documentation
-    "The list of testcase results and assertions results yielded by descendants."))
+    "The total number of assertions that yielded a condition in the testcase and its descendants."))
   (:documentation
-   "A class capturing a testcase result."))
+   "A class capturing a testcase outcome."))
 
-(defmethod initialize-instance :after ((instance testcase-result) &rest initargs &key &allow-other-keys)
-  (declare (ignore initargs))
-  (with-slots (results total success failure condition) instance
-    (loop :for result :in results
-	  :do (etypecase result
-		(assertion-success
-		 (incf total)
-		 (incf success))
-		(assertion-failure
-		 (incf total)
-		 (incf failure))
-		(assertion-condition
-		 (incf total)
-		 (incf condition))
-		(testcase-result
-		 (incf total (slot-value result 'total))
-		 (incf success (slot-value result 'success))
-		 (incf failure (slot-value result 'failure))
-		 (incf condition (slot-value result 'condition)))))))
-
-(defmethod print-object ((instance testcase-result) stream)
+(defmethod print-object ((instance testcase-outcome) stream)
   (print-unreadable-object (instance stream :type t :identity t)
     (format stream ":NAME ~S" (if (slot-boundp instance 'name)
 			 (slot-value instance 'name)
 			 "(no name)"))
     (loop :for slot :in '(total success failure condition)
-	  :do (format stream " :~S ~A" slot (slot-value instance slot)))))
+	  :do (format stream " :~A ~A" (symbol-name slot) (slot-value instance slot)))))
 
-(defmethod describe-object ((instance testcase-result) stream)
-  (with-slots (name argument-values total success failure condition results) instance
+(defmethod describe-object ((instance testcase-outcome) stream)
+  (flet ((describe-path (path)
+	   (when path
+	     (format stream "~&Path:~%")
+	     (loop :for path-element :in (reverse path)
+		   :do (format stream "~S~%" path-element))))
+	 (describe-result (&key total success failure condition)
+	   (format stream "~&Total: ~D" total)
+	   (when (> total 0)
+	     (flet ((fraction (n)
+		      (round (/ (* 100 n) total))))
+	       (format stream "~&Success: ~D/~D (~D%)"
+		       success total (fraction success))
+	       (format stream "~&Failure: ~D/~D (~D%)"
+		       failure total (fraction failure))
+	       (format stream "~&Condition: ~D/~D (~D%)"
+		       condition total (fraction condition)))
+	     (if (< success total)
+		 (format stream "~&Outcome: Failure")
+		 (format stream "~&Outcome: Success")))))
+  (with-slots (name path argument-values total success failure condition) instance
     (format stream "~&Name: ~S" name)
+    (describe-path path)
     (cond
       ((> (length argument-values) 1)
        (format stream "~&Arguments:")
@@ -273,73 +101,21 @@ of returning normally."))
 	     :do (format stream "~& Argument #~A: ~S" i argument)))
       ((= (length argument-values) 1)
        (format stream "~&Argument: ~S" (first argument-values))))
-    (format stream "~&Total: ~D" total)
-    (when (> total 0)
-      (format stream "~&Success: ~D/~D (~D%)"
-	      success total (round (/ (* 100 success) total)))
-      (format stream "~&Failure: ~D/~D (~D%)"
-	      failure total (round (/ (* 100 failure) total)))
-      (format stream "~&Condition: ~D/~D (~D%)"
-	      condition total (round (/ (* 100 condition) total))))
-    (if (< success total)
-	(format stream "~&Outcome: Failure")
-	(format stream "~&Outcome: Success"))
-    (when (< success total)
-      (let ((description-separator
-	      (make-string 80 :initial-element #\=)))
-	(loop :for result :in results
-	      :when (or (typep result 'assertion-failure)
-			(typep result 'assertion-condition)
-			(and (typep result 'testcase-result)
-			     (< (slot-value result 'success)
-				(slot-value result 'total))))
-	      :do (progn
-		    (format stream "~&~A~&" description-separator)
-		    (describe result stream)))))
-    (values)))
+    (describe-result :total total :success success :failure failure :condition condition))))
 
+(defun make-testcase-outcome (&rest initargs &key path name argument-values total success failure condition)
+  (declare (ignore path name argument-values total success failure condition))
+  (apply #'make-instance 'testcase-outcome initargs))
 
 
 ;;;
-;;; Current Testcase Result
+;;; Current Testcase Outcome
 ;;;
 
-(defparameter *current-testcase-result* nil
-  "The result of the current testcase.")
+(defparameter *current-testcase-outcome* nil
+  "The outcome of the current testcase.")
 
-(defvar *last-testsuite-result* nil
-  "The result of the last testsuite.")
-
-(defgeneric record-result (new-result testcase-result)
-  (:method ((new-result result) (accumulator testcase-result))
-    (with-slots (results total) accumulator
-      (setf results (nconc results (list new-result)))))
-  (:method ((new-result assertion-result) (accumulator testcase-result))
-    (declare (ignore new-result))
-    (incf (slot-value accumulator 'total))
-    (call-next-method))
-  (:method ((new-result assertion-success) (accumulator testcase-result))
-    (declare (ignore new-result))
-    (incf (slot-value accumulator 'success))
-    (call-next-method))
-  (:method ((new-result assertion-failure) (accumulator testcase-result))
-    (declare (ignore new-result))
-    (incf (slot-value accumulator 'failure))
-    (call-next-method))
-  (:method ((new-result assertion-condition) (accumulator testcase-result))
-    (declare (ignore new-result))
-    (incf (slot-value accumulator 'condition))
-    (call-next-method))
-  (:method ((new-result testcase-result) (accumulator testcase-result))
-    (dolist (slot '(success failure condition total))
-      (incf (slot-value accumulator slot)
-	    (slot-value new-result slot)))
-    (call-next-method)))
-
-(defun record-testcase-result (result &optional (testcase-result *current-testcase-result*))
-  "Record RESULT in TESTCASE-RESULT."
-  (unless testcase-result
-    (return-from record-testcase-result result))
-  (record-result result testcase-result))
+(defvar *last-testsuite-outcome* nil
+  "The outcome of the last testsuite.")
 
 ;;;; End of file `result.lisp'
