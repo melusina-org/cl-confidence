@@ -275,11 +275,7 @@ The BODY is examined and assertions spotted in it are wrapped with extra code
 installing restarts and aggregating results for assertions and nested testcases..
 
 The return value of a testcase is a RESULT, holding a precise description of test that
-ran and their outcomes.
-
-When *TESTCASE-INTERACTIVE-P* is NIL, batch mode is assumed and a summary of
-failures is printed on stdout and the program is exited with a status
-reflecting the failure or success of tests."
+ran and their outcomes."
   (set-testcase-properties testcase-name)
   (multiple-value-bind (remaining-forms declarations doc-string)
       (alexandria:parse-body body :documentation t)
