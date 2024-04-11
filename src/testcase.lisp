@@ -43,7 +43,7 @@ Usually TESTSUITE but commonly used values are ACCEPTANCE, INTEGRATION, PREFLIGH
 (defparameter *testsuite-id* nil
   "A unique identfier for the current testsuite run batch.")
 
-(defparameter *last-testsuite-result* nil
+(defvar *last-testsuite-result* nil
   "The results of the last testsuite that ran.")
 
 
