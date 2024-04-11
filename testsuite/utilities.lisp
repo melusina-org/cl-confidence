@@ -15,7 +15,7 @@
 
 (defun ensure-unwrap (form)
   (if (and (eq 2 (length form))
-	   (eq 'confidence::supervise-assertion (first form)))
+	   (eq 'confidence::instrument-assertion (first form)))
       (second form)
       form))
 

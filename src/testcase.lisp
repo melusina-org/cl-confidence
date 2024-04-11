@@ -307,10 +307,10 @@ instead of returning normally."))
 
 
 ;;;
-;;; SUPERVISE-ASSERTION
+;;; INSTRUMENT-ASSERTION
 ;;;
 
-(defun supervise-assertion-1 (&key name form type argument-names argument-lambdas assertion-lambda)
+(defun instrument-assertion-1 (&key name form type argument-names argument-lambdas assertion-lambda)
   "Supervise the execution of ARGUMENTS-LAMBDA and ASSERTION-LAMBDA."
   (labels ((evaluation-strategy-1 (argument-condition argument-values)
 	     (when argument-condition
@@ -367,8 +367,8 @@ instead of returning normally."))
 	     (evaluation-strategy (mapcar #'supervise-evaluation-1 argument-lambdas))))
     (supervise-evaluation argument-lambdas)))
 
-(defmacro supervise-assertion (form)
-  "Supervise the execution of the assertion FORM and return ASSERTION evaluation details.
+(defmacro instrument-assertion (form)
+  "Instrument the execution of the assertion FORM and return ASSERTION evaluation details.
 This makes sure that the returned type for FORM is an instance of RESULT and
 guarantees that conditions triggered by the evaluation of arguments are recorded."
   (let* ((name
@@ -390,7 +390,7 @@ guarantees that conditions triggered by the evaluation of arguments are recorded
 	      `(lambda (argv) (declare (ignore argv)) ,form))
 	     (:function
 	      `(lambda (argv) (apply (function ,name) argv))))))
-    `(supervise-assertion-1
+    `(instrument-assertion-1
       :name (quote ,name)
       :form (quote ,form)
       :type ,type
@@ -442,7 +442,7 @@ symbol of this function."
 	   ((eq 'without-confidence (is-funcall-p form))
 	    `(progn ,@(rest form)))
 	   ((is-assert-form-p form)
-            `(supervise-assertion ,form))
+            `(instrument-assertion ,form))
            ((is-funcall-p form)
             (cons (first form) (mapcar #'wrap-assertion-forms (rest form))))
            (t
