@@ -34,6 +34,8 @@ and remaining FORMS as multiple values."
 	       (and (> (length forms) 1) (stringp (first forms))))
 	     (report-p (forms)
 	       (and (eq :report (first forms)) (second forms)))
+	     (list-report-p (forms)
+	       (and (>= (length forms) 1) (listp (first forms)) (eq :report (first (first forms)))))
 	     (read-docstring (forms)
                (if (docstring-p forms)
 		   (read-report (first forms) (rest forms))
@@ -45,6 +47,10 @@ and remaining FORMS as multiple values."
 		 ((eq :report (first forms))
 		  (error "The assertion definition ~A announces a :REPORT which is not provided."
 			 (symbol-name name)))
+		 ((list-report-p forms)
+		  (warn "Obsolete :REPORT clause in DEFINE-ASSERTION.
+The :REPORT clause should not be enclosed in a list.")
+		  (read-declarations docstring (second (first forms)) (rest forms)))
 		 (t
 		  (read-declarations docstring docstring forms))))
 	     (read-declarations (docstring report forms)
