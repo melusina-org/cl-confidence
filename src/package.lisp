@@ -23,6 +23,7 @@
    #:testcase-success
    #:testcase-failure
    #:testcase-condition
+   #:testcase-argument-values
    ;; Testcases
    #:assertion-path
    #:assertion-name
@@ -40,6 +41,8 @@
    #:*testsuite-id*
    #:*testsuite-last-result*
    #:list-testcases
+   #:testcase-break-into-the-debugger-on-errors
+   #:*testcase-break-into-the-debugger-on-errors*
    ;; Assertions
    #:define-assertion
    #:list-assertions

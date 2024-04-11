@@ -11,7 +11,7 @@
 @end direntry
 
 @copying
-Confidence software and associated documentation is distributed
+@b{Confidence} software and associated documentation is distributed
 under the terms of the MIT License.
 
 @quotation
@@ -112,7 +112,7 @@ function. A special kind of function, but a function.
 * String Assertions::
 * List Assertions::
 * Vector Assertions::
-* Floating Numbers Assertions::
+* Floating Number Assertions::
 @end menu
 
 @node Define Assertions, Basic Assertions, Assertions, Assertions
@@ -169,13 +169,13 @@ function. A special kind of function, but a function.
 @include include/fun-org.melusina.confidence-assert-set-equal.texinfo
 @include include/fun-org.melusina.confidence-assert-subsetp.texinfo
 
-@node Vector Assertions, Floating Numbers Assertions, List Assertions, Assertions
+@node Vector Assertions, Floating Number Assertions, List Assertions, Assertions
 @section Vector Assertions
 
 @include include/fun-org.melusina.confidence-assert-vector-equal.texinfo
 
-@node Floating Numbers Assertions, Testcases, Vector Assertions, Assertions
-@section Floating Numbers Assertions
+@node Floating Number Assertions, Testcases, Vector Assertions, Assertions
+@section Floating Number Assertions
 
 @include include/var-org.melusina.confidence-star-double-float-precision-star.texinfo
 @include include/var-org.melusina.confidence-star-single-float-precision-star.texinfo
@@ -184,24 +184,80 @@ function. A special kind of function, but a function.
 @include include/fun-org.melusina.confidence-assert-float-is-definitely-greater-than.texinfo
 @include include/fun-org.melusina.confidence-assert-float-is-definitely-less-than.texinfo
 
-@node Testcases, Specialities, Floating Numbers Assertions, Top
+@node Testcases, Specialities, Floating Number Assertions, Top
 @chapter Testcases
 
-The @i{define-testcase} macro allows to define testcases, which are
-functions specially crafted to run tests.  There are two differences
-with regular functions. The first difference is that calls to
-testcases and assertions in a testcase are instrumented, so that a
-global success report is produced. The second difference is that when
-a testcase is run as a toplevel form in a batch environment (not at a
-REPL) the testcase prints a summary of results when done and exits the
-program with a success status reflecting the testcase result.
+The @i{define-testcase} macro allows to define @i{testcases}, which
+are functions specially crafted to run @i{assertions} and build a
+testsuite.  There are three important differences with regular
+functions. The first one is that calls to assertions in a testcase are
+instrumented, so that a global success report is produced. The second
+difference is that when a testcase is run as a toplevel form the
+testcase prints a summary of results when done. The third difference
+is that some specific @i{restarts} are available in this context.
+
+@section Define a Testcase
+
+@include include/macro-org.melusina.confidence-define-testcase.texinfo
+@include include/class-org.melusina.confidence-testcase-outcome.texinfo
+
+@section Describe Failed Assertions
+
+When an assertion fails, it prints a description on the
+@code{*error-output*}, unless the following configuration variable
+is set to @code{nil}.
+
+@include include/var-org.melusina.confidence-star-testcase-describe-failed-assertions-star.texinfo
+
+
+@section Run Testcases in Batch
+
+The @b{Confidence} system normally runs test cases in batch, which is
+appropriate when it is used for fully automated tests, in continuous
+integration and delivery pipelines.
+
+@section Run Testcases Interactively
+
+The @b{Confidence} system can be configured so that when a testcase
+meets an unexpected condition, such as an error or an unsatisfied
+assertion, the debugger is invoked. To do so, modify the variable
+@code{*testcase-break-into-the-debugger-on-errors*} either directly
+or with the function @code{testcase-break-into-the-debugger-on-errors}.
+
+@include include/var-org.melusina.confidence-star-testcase-break-into-the-debugger-on-errors-star.texinfo
+@include include/fun-org.melusina.confidence-testcase-break-into-the-debugger-on-errors.texinfo
+
+When this configuration is active, the following @i{restarts} are
+available in the debugger:
+
+@itemize
+@item
+@b{ASSERTION-RETRY} Which retries to evaluate the arguments of the
+failing assertion and the assertion itself.
+@item
+@b{TESTCASE-RETRY} Which retries the current testcase.
+@item
+@b{TESTCASE-CONTINUE} Which registers an error and continues the
+current testcase.
+@item
+@b{TESTCASE-RETURN} Which registers an error and immediately returns
+from the current testcase.
+@item
+@b{TESTCASE-STEP-UP} Which registers an error and continue the current
+testcase without breaking into the debugger.
+@item
+@b{TESTCASE-SCROLL} Which registers an error and continue the current
+testcase and other testcases higher in the call stack without breaking
+into the debugger.
+@end itemize
+
+@section Add Testcases to the Export List of a Package
 
 Defined testcases are automatically exported, which makes it easy to
 call them from the REPL, the testsuite tool or to add them to
 generated documentation.
 
-@include include/var-org.melusina.confidence-star-testcase-interactive-p-star.texinfo
-@include include/macro-org.melusina.confidence-define-testcase.texinfo
+XXXX
 
 @node Specialities, , Testcases, Top
 @chapter Specialities

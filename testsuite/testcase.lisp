@@ -36,14 +36,21 @@
   (assert-t t))
 
 (define-testcase a-failing-argument-testsuite ()
-  (assert-t nil)
-  (assert-eq 0 (+ 1 1))
-  (assert-t (error "An intentional error")))
+  (assert-t t)
+  (assert-eq 0 0)
+  (assert-t (error "An intentional error occuring when evaluating assertion arguments.")))
 
 (define-testcase a-failing-testcase-testsuite ()
-  (error "An intentional error")
-  (assert-t nil)
-  (assert-eq 0 (+ 1 1)))
+  (assert-t t)
+  (assert-eq 0 0)
+  (error "An intentional error occuring in the testsuite."))
+
+(define-testcase a-compound-failing-testsuite ()
+  (a-successful-testsuite)
+  (a-successful-testsuite)
+  (a-failing-argument-testsuite)
+  (a-failing-argument-testsuite)
+  (a-failing-testcase-testsuite))
 
 (define-testcase a-successful-testsuite-with-function-calls ()
   (funcall 'a-successful-testsuite)

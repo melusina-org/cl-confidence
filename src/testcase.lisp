@@ -28,7 +28,10 @@ When the flag is a generalised boolean, a failed assertion can be retried.
 
 The default value of the parameter is based on the :SWANK and :SLYNK features.")
 
-(defparameter *testcase-describe-failed-assertions* t
+(defvar *testcase-break-into-the-debugger-on-errors* nil
+  "Flag controlling whether an unexpected error should open the debugger.")
+
+(defvar *testcase-describe-failed-assertions* *error-output*
   "Flag controlling whether a testcase should describe failed assertions or not.")
 
 (defparameter *testcase-path* nil
@@ -45,6 +48,10 @@ Usually TESTSUITE but commonly used values are ACCEPTANCE, INTEGRATION, PREFLIGH
 
 (defvar *last-testsuite-result* nil
   "The results of the last testsuite that ran.")
+
+(defun testcase-break-into-the-debugger-on-errors (&optional (breakp t))
+  "Set the flag controlling wether an unexpected error should open the debugger."
+  (setf *testcase-break-into-the-debugger-on-errors* breakp))
 
 
 ;;;;
@@ -312,60 +319,94 @@ instead of returning normally."))
 
 (defun instrument-assertion-1 (&key name form type argument-names argument-lambdas assertion-lambda)
   "Supervise the execution of ARGUMENTS-LAMBDA and ASSERTION-LAMBDA."
-  (labels ((evaluation-strategy-1 (argument-condition argument-values)
-	     (when argument-condition
-	       (signal
-		'assertion-condition
-		:path *testcase-path*
-		:name name
-		:argument-names argument-names
-		:argument-values argument-values
-		:form form
-		:type type
-		:condition (first argument-condition))
-	       (return-from evaluation-strategy-1))
-	     (multiple-value-bind (success-p description)
-		 (handler-case (funcall assertion-lambda argument-values)
-	     	   (serious-condition (unexpected-condition)
-		     (signal
-		      'assertion-condition
-		      :path *testcase-path*
-		      :name name
-		      :argument-names argument-names
-		      :argument-values argument-values
-		      :form form
-		      :type type
-		      :condition unexpected-condition)
-		     (return-from evaluation-strategy-1)))
-	       (cond
-		 ((not success-p)
-		  (signal 'assertion-failure
+  (labels ((evaluate-assertion-lambda (argument-values argument-conditions)
+	     (labels ((signal-or-break (condition)
+			(if (eq *testcase-break-into-the-debugger-on-errors* t)
+			    (restart-case (error condition)
+			      (assertion-retry ()
+				:report "Retry to evaluate this assertion and its arguments."
+				(throw :retry-assertion t))
+			      (testcase-continue ()
+				:report
+				(lambda (stream)
+				  (let ((testcase-name
+					  (testcase-name *current-testcase-outcome*)))
+				    (format stream "Register an error and continue testcase ~A." testcase-name)))
+				(signal condition)))
+			    (signal condition)))
+		      (signal-argument-condition (condition)
+			(signal-or-break
+			 (make-condition
+			  'assertion-condition
 			  :path *testcase-path*
 			  :name name
 			  :argument-names argument-names
 			  :argument-values argument-values
 			  :form form
 			  :type type
-			  :description description))
-		 (t
-		  (signal 'assertion-success
+			  :condition condition)))
+		      (signal-unexpected-condition (condition)
+			(signal-or-break
+			 (make-condition
+			  'assertion-condition
 			  :path *testcase-path*
 			  :name name
 			  :argument-names argument-names
 			  :argument-values argument-values
 			  :form form
-			  :type type)))))
-	   (evaluation-strategy (argument-values)
-	     (evaluation-strategy-1
-	      (member-if (lambda (object) (typep object 'condition)) argument-values)
-	      argument-values))
-	   (supervise-evaluation-1 (argument-lambda)
-	     (handler-case (funcall argument-lambda)
+			  :type type
+			  :condition condition)))
+		      (signal-failure (description)
+			(signal-or-break
+			 (make-condition
+			  'assertion-failure
+			  :path *testcase-path*
+			  :name name
+			  :argument-names argument-names
+			  :argument-values argument-values
+			  :form form
+			  :type type
+			  :description description)))
+		      (signal-success ()
+			(signal
+			 (make-condition
+			  'assertion-success
+			  :path *testcase-path*
+			  :name name
+			  :argument-names argument-names
+			  :argument-values argument-values
+			  :form form
+			  :type type))))
+	       (when argument-conditions
+		 (signal-argument-condition (first argument-conditions))
+		 (return-from evaluate-assertion-lambda))
+	       (multiple-value-bind (success-p description)
+		   (handler-case (funcall assertion-lambda argument-values)
+	     	     (serious-condition (unexpected-condition)
+		       (signal-unexpected-condition unexpected-condition)
+		       (return-from evaluate-assertion-lambda)))
+		 (cond
+		   ((not success-p)
+		    (signal-failure description))
+		   (t
+		    (signal-success)))
+		 (values nil))))
+	   (evaluate-argument-lambda (argument-lambda)
+	     (handler-case (values nil (funcall argument-lambda))
 	       (t (unexpected-condition)
-		 unexpected-condition)))
-	   (supervise-evaluation (argument-lambdas)
-	     (evaluation-strategy (mapcar #'supervise-evaluation-1 argument-lambdas))))
-    (supervise-evaluation argument-lambdas)))
+		 (values t unexpected-condition))))
+	   (evaluate-assertion ()
+	     (loop :with argument-condition-p :and argument-value
+		   :for argument-lambda :in argument-lambdas
+		   :do (setf (values argument-condition-p argument-value)
+			     (evaluate-argument-lambda argument-lambda))
+		   :collect argument-value :into argument-values
+		   :when argument-condition-p
+		   :collect argument-value :into argument-conditions
+		   :finally (evaluate-assertion-lambda argument-values argument-conditions)))
+	   (evaluate-assertion-with-retry ()
+	     (loop :while (catch :retry-assertion (evaluate-assertion)))))
+    (evaluate-assertion-with-retry)))
 
 (defmacro instrument-assertion (form)
   "Instrument the execution of the assertion FORM and return ASSERTION evaluation details.
@@ -478,66 +519,110 @@ symbol of this function."
 	    :name testcase-name))
 	 (*testcase-path*
 	   (cons testcase-name *testcase-path*)))
-    (flet ((install-signal-handlers-and-run-testcase ()
-	     (handler-bind
-		 ((assertion-success
-		    (lambda (condition)
-		      (declare (ignore condition))
-		      (with-slots (total success) *current-testcase-outcome*
-			(incf total)
-			(incf success))))
-		  (assertion-failure
-		    (lambda (condition)
-		      (when *testcase-describe-failed-assertions*
-			(format *testcase-describe-failed-assertions* "~&Assertion Failure~%~A" condition))
-		      (with-slots (total failure) *current-testcase-outcome*
-			(incf total)
-			(incf failure))))
-		  (assertion-condition
-		    (lambda (condition)
-		      (when *testcase-describe-failed-assertions*
-			(format *testcase-describe-failed-assertions* "~&Assertion Condition~%~A" condition))
-		      (with-slots (total condition) *current-testcase-outcome*
-			(incf total)
-			(incf condition))))
-		  (testcase-end
-		    (lambda (condition)
-		      (with-slots ((current-total total)
-				   (current-success success)
-				   (current-failure failure)
-				   (current-condition condition))
-			  *current-testcase-outcome*
-			(with-slots ((testcase-total total)
-				     (testcase-success success)
-				     (testcase-failure failure)
-				     (testcase-condition condition))
-			    (testcase-outcome condition)
-			  (incf current-total testcase-total)
-			  (incf current-success testcase-success)
-			  (incf current-failure testcase-failure)
-			  (incf current-condition testcase-condition))))))
+    (labels ((current-testcase-p (condition)
+	       (declare (ignore condition))
+	       (eq this-testcase-outcome *current-testcase-outcome*))
+	     (run-testcase-with-restarts ()
 	       (let ((*current-testcase-outcome* this-testcase-outcome))
-		 (funcall testcase-body)
-		 (setf *last-testsuite-outcome* *current-testcase-outcome*))
-	       (describe *last-testsuite-outcome*)
-	       (terpri)))
-	   (just-run-testcase ()
-	     (let ((*current-testcase-outcome* this-testcase-outcome))
-	       (funcall testcase-body))
-	     (signal 'testcase-end :outcome this-testcase-outcome)))
+		 (restart-case (funcall testcase-body)
+		   (testcase-retry ()
+		     :report
+		     (lambda (stream)
+		       (let ((testcase-name
+			       (testcase-name *current-testcase-outcome*)))
+			 (format stream "Retry testcase ~A." testcase-name)))
+		     :test
+		     (lambda (condition) (current-testcase-p condition))
+		     (throw :testcase-retry t))
+		   (testcase-return ()
+		     :report
+		     (lambda (stream)
+		       (let ((testcase-name
+			       (testcase-name *current-testcase-outcome*)))
+			 (format stream "Return from testcase ~A." testcase-name)))
+		     :test
+		     (lambda (condition) (current-testcase-p condition))
+		     (return-from run-testcase-with-restarts))
+		   (testcase-step-up ()
+		     :report
+		     (lambda (stream)
+		       (let ((testcase-name
+			       (testcase-name *current-testcase-outcome*)))
+			 (format stream "Step up from testcase ~A." testcase-name)))
+		     :test
+		     (lambda (condition) (current-testcase-p condition))
+		     (setf *testcase-break-into-the-debugger-on-errors* :testcase-step-up))
+		   (testcase-scroll ()
+		     :report "Scroll through remaining errors."
+		     :test
+		     (lambda (condition) (current-testcase-p condition))
+		     (setf *testcase-break-into-the-debugger-on-errors* :testcase-scroll))))
+	       (when (eq *testcase-break-into-the-debugger-on-errors* :testcase-step-up)
+		 (setf *testcase-break-into-the-debugger-on-errors* t))
+	       (values nil))
+	     (run-testcase-with-retry ()
+	       (loop :while (catch :testcase-retry (run-testcase-with-restarts))))
+	     (install-signal-handlers-and-run-testcase-with-retry ()
+	       (handler-bind
+		   ((assertion-success
+		      (lambda (condition)
+			(declare (ignore condition))
+			(with-slots (total success) *current-testcase-outcome*
+			  (incf total)
+			  (incf success))))
+		    (assertion-failure
+		      (lambda (condition)
+			(when *testcase-describe-failed-assertions*
+			  (format *testcase-describe-failed-assertions* "~&Assertion Failure~%~A" condition))
+			(with-slots (total failure) *current-testcase-outcome*
+			  (incf total)
+			  (incf failure))))
+		    (assertion-condition
+		      (lambda (condition)
+			(when *testcase-describe-failed-assertions*
+			  (format *testcase-describe-failed-assertions* "~&Assertion Condition~%~A" condition))
+			(with-slots (total condition) *current-testcase-outcome*
+			  (incf total)
+			  (incf condition))))
+		    (testcase-end
+		      (lambda (condition)
+			(with-slots ((current-total total)
+				     (current-success success)
+				     (current-failure failure)
+				     (current-condition condition))
+			    *current-testcase-outcome*
+			  (with-slots ((testcase-total total)
+				       (testcase-success success)
+				       (testcase-failure failure)
+				       (testcase-condition condition))
+			      (testcase-outcome condition)
+			    (incf current-total testcase-total)
+			    (incf current-success testcase-success)
+			    (incf current-failure testcase-failure)
+			    (incf current-condition testcase-condition))))))
+		 (case *testcase-break-into-the-debugger-on-errors*
+		   ((:testcase-scroll :testcase-step-up)
+		    (setf *testcase-break-into-the-debugger-on-errors* t)))
+		 (run-testcase-with-retry)
+		 (when (eq *testcase-break-into-the-debugger-on-errors* :testcase-scroll)
+		   (setf *testcase-break-into-the-debugger-on-errors* t))
+		 (setf *last-testsuite-outcome* this-testcase-outcome)
+		 (describe *last-testsuite-outcome*)
+		 (terpri))))
       (if testsuite-p
-	  (install-signal-handlers-and-run-testcase)
-	  (just-run-testcase))
+	  (install-signal-handlers-and-run-testcase-with-retry)
+	  (progn
+	    (run-testcase-with-retry)
+	    (signal 'testcase-end :outcome this-testcase-outcome)))
       (values this-testcase-outcome))))
   
 (defmacro define-testcase (testcase-name testcase-args &body body)
   "Define a test case function TESTCASE-NAME, accepting TESTCASE-ARGS with BODY.
-
 The BODY is examined and assertions spotted in it are wrapped with extra code
 installing restarts and aggregating outcomes for assertions and nested testcases..
 
-The return value of a testcase is a OUTCOME, holding a precise description of test that
-ran and their outcomes."
+The return value of a testcase is a TESTCASE-OUTCOME, holding a precise description
+of tests that ran and their outcomes."
   (set-testcase-properties testcase-name)
   (multiple-value-bind (remaining-forms declarations doc-string)
       (alexandria:parse-body body :documentation t)
