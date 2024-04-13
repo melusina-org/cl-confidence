@@ -106,7 +106,7 @@ function. A special kind of function, but a function.
 
 @menu
 * Define Assertions::
-* Basic Assertions::
+* Comparison Assertions::
 * Condition Assertions::
 * Character Assertions::
 * String Assertions::
@@ -115,12 +115,12 @@ function. A special kind of function, but a function.
 * Floating Number Assertions::
 @end menu
 
-@node Define Assertions, Basic Assertions, Assertions, Assertions
+@node Define Assertions, Comparison Assertions, Assertions, Assertions
 @section Define Assertions
 @include include/macro-org.melusina.confidence-define-assertion.texinfo
 
-@node Basic Assertions, Condition Assertions, Define Assertions, Assertions
-@section Basic Assertions
+@node Comparison Assertions, Condition Assertions, Define Assertions, Assertions
+@section Comparison Assertions
 
 @include include/fun-org.melusina.confidence-assert-t.texinfo
 @include include/fun-org.melusina.confidence-assert-t-star.texinfo
@@ -136,7 +136,7 @@ function. A special kind of function, but a function.
 @include include/fun-org.melusina.confidence-assert-lt-equals.texinfo
 @include include/fun-org.melusina.confidence-assert-gt-equals.texinfo
 
-@node Condition Assertions, Character Assertions, Basic Assertions, Assertions
+@node Condition Assertions, Character Assertions, Comparison Assertions, Assertions
 @section Condition Assertions
 
 @include include/macro-org.melusina.confidence-assert-condition.texinfo
@@ -255,9 +255,12 @@ into the debugger.
 
 Defined testcases are automatically exported, which makes it easy to
 call them from the REPL, the testsuite tool or to add them to
-generated documentation.
+generated documentation.  It could however be desirable to explciitly
+add them to the export list of a package.  To support this, the
+@b{Confidence} system exports the following function:
 
-XXXX
+@include include/fun-org.melusina.confidence-print-export-list-for-testcases.texinfo
+
 
 @node Specialities, , Testcases, Top
 @chapter Specialities
@@ -274,7 +277,7 @@ test resources is just working as expected.
 
 It is simple enough to define a with-macro in Common Lisp so that
 @b{Confidence} does not provide an extra feature to do so. Just mind
-the `unwind-protect` operator.
+the @code{unwind-protect} operator.
 
 
 @section Test Hierarchies
@@ -296,24 +299,21 @@ functional tests journeys, adding fixtures to the defined testsuite.
 Having a testcase explicitly listing the other testcases it must run
 is a simple and reliable organisation that never lies to the
 programmer.  It also makes the test hierarchy navigable in IDEs
-without extra tooling, which is a good thing.
+without supplementary tooling.
 
 
 @section Test Tags
 
 Some test frameworks provide a tag feature so that it possible to run
-tests according to some tags attached to them.
-
-Using tags to decorate tests that need to be run in such or such
-context, similarly to what popular Java test frameworks propose,
-obfuscates the test workflow and nobody wants to discover after
-several weeks of operation that some tests were not run by the
-deployment pipeline.
+tests according to some tags attached to them.  Some popular Java
+testing frameworks offer such a tag feature. Relying on this to decide
+which tests to run obfuscates the test workflow and makes it hard to
+understand which tests are run in a specific context.
 
 Having a testcase explicitly listing the other testcases it must run
 is a simple and reliable organisation that never lies to the
 programmer.  It also makes the test hierarchy navigable in IDEs
-without extra tooling, which is a good thing.
+without extra tooling.
 
 
 @section Test Selection
@@ -321,6 +321,8 @@ without extra tooling, which is a good thing.
 When some tests are only relevant to some platform, or must be be
 controlled by a feature, it is very easy to control their inclusion in
 the testsuite using the feature-related reader macros.  It does not
-seem necessary for @b{Confidence} to provide extra tools here.
+seem necessary for @b{Confidence} to provide special features as the
+usual Common Lisp operstors @code{when}, @code{unless} and
+@code{return-from} can be used here.
 
 @bye

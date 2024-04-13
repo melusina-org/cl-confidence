@@ -40,9 +40,10 @@
    #:*testsuite-name*
    #:*testsuite-id*
    #:*testsuite-last-result*
-   #:list-testcases
-   #:testcase-break-into-the-debugger-on-errors
    #:*testcase-break-into-the-debugger-on-errors*
+   #:testcase-break-into-the-debugger-on-errors
+   #:list-testcases
+   #:print-export-list-for-testcases
    ;; Assertions
    #:define-assertion
    #:list-assertions

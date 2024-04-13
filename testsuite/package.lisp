@@ -15,8 +15,39 @@
   (:local-nicknames (#:confidence #:org.melusina.confidence))
   (:use #:common-lisp #:org.melusina.confidence)
   (:export
-   #:list-available-tests
-  ))
+   #:a-compound-failing-testsuite
+   #:a-failing-argument-testsuite
+   #:a-failing-testcase-testsuite
+   #:a-simple-failure
+   #:a-successful-testsuite
+   #:a-successful-testsuite-with-function-calls
+   #:ensure-that-define-testcase-recognises-sharpsign-single-quote-in-function-names
+   #:ensure-that-testcase-is-reported-when-wrapped-in-flet
+   #:interactive-assertion-count
+   #:interactive-testcase-extensivity
+   #:interactive-testcase-extensivity-1
+   #:interactive-testcase-extensivity-2
+   #:perform-many-assertions
+   #:perform-many-assertions-wrapped-with-flet
+   #:run-all-tests
+   #:run-interactive-tests
+   #:testsuite-assert-char*
+   #:testsuite-assert-condition
+   #:testsuite-assert-float*
+   #:testsuite-assert-list*
+   #:testsuite-assert-string*
+   #:testsuite-assert-vector*
+   #:testsuite-assertion
+   #:testsuite-basic-assertions
+   #:testsuite-define-assertion
+   #:testsuite-list-as-set
+   #:testsuite-result
+   #:testsuite-string-match
+   #:testsuite-testcase
+   #:testsuite-utilities
+   #:validate-define-testcase
+   #:validate-outcome-can-be-described
+   #:validate-supervise-assertion))
 
 (in-package #:org.melusina.confidence/testsuite)
 

@@ -639,11 +639,17 @@ of tests that ran and their outcomes."
        (export (quote ,testcase-name))
        (set-testcase-properties ',testcase-name))))
 
-(defun list-testcases (&optional package-designator)
+(defun list-testcases (&optional (package-designator *package*))
   "List testcases exported by PACKAGE-DESIGNATOR."
   (loop :for s :being :the :external-symbols :of (find-package package-designator)
 	:when (get s :org.melusina.confidence/testcase)
-	:collect s))
+	:collect s :into testcases
+	:finally (return (sort testcases #'string< :key #'symbol-name))))
+
+(defun print-export-list-for-testcases (&optional (package-designator *package*))
+  "Print a form suitable for exporting TESTCASES defiend by PACKAGE-DESIGNATOR."
+  (loop :for testcase :in (list-testcases package-designator)
+	:do (format t "~&   #:~A~%" (string-downcase (symbol-name testcase)))))
 
 (defun quit ()
   "Quit the SBCL lisp image and set exit status accordingly."
