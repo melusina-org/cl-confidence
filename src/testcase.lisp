@@ -455,9 +455,9 @@ guarantees that conditions triggered by the evaluation of arguments are recorded
 	 (cond
 	   ((symbolp form)
 	    form)
-	   ((and (listp form) (eq (first form) 'quote))
+	   ((and (listp form) (eq (first form) 'quote) (eq 2 (length form)))
 	    (second form))
-	   ((and (listp form) (eq (first form) 'function))
+	   ((and (listp form) (eq (first form) 'function) (eq 2 (length form)))
 	    (second form))))
        (is-funcall-p (form)
 	 "Predicate recognising forms which are function calls.
@@ -480,15 +480,16 @@ symbol of this function."
 	      :org.melusina.confidence/assertion))
        (wrap-assertion-forms (form)
          (cond
+	   ((atom form)
+	    form)
 	   ((eq 'without-confidence (is-funcall-p form))
 	    `(progn ,@(rest form)))
 	   ((is-assert-form-p form)
             `(instrument-assertion ,form))
-           ((is-funcall-p form)
-            (cons (first form) (mapcar #'wrap-assertion-forms (rest form))))
-           (t
-	    form))))
-    (mapcar #'wrap-assertion-forms body-forms)))
+           ((consp form)
+	    (cons (wrap-assertion-forms (car form))
+		  (wrap-assertion-forms (cdr form)))))))
+    (wrap-assertion-forms body-forms)))
 
 (defun testcase-outcome-pathname (outcome)
   "The pathname used to write OUTCOME description."

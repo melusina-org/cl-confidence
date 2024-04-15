@@ -82,11 +82,23 @@
 
 (define-testcase perform-many-assertions-wrapped-with-flet (&key success failure condition)
   (flet ((wrapper ()
-	   (perform-many-assertions 
-	    :success success
-	    :failure failure
-	    :condition condition)))
+	   (when success
+	     (dotimes (_ success)
+	       (assert-t t)))
+	   (when failure
+	     (dotimes (_ failure)
+	       (assert-t nil)))
+	   (when condition
+	     (dotimes (_ condition)
+	       (assert-t (error "An error condition was signalled."))))))
     (wrapper)))
+
+(define-testcase ensure-that-define-testcase-handles-dotted-lists ()
+  (assert-t
+   (listp
+    (macroexpand-1
+     '(define-testcase example ()
+       (loop :for (a . b) :in '((1 . 1) (2 . 2)) :do (assert-equal a b)))))))
 
 (define-testcase ensure-that-testcase-is-reported-when-wrapped-in-flet ()
   (with-testcase-outcome testcase-outcome
@@ -101,6 +113,7 @@
   (validate-define-testcase)
   (ensure-that-define-testcase-recognises-sharpsign-single-quote-in-function-names)
   (ensure-that-testcase-is-reported-when-wrapped-in-flet)
+  (ensure-that-define-testcase-handles-dotted-lists)
   (validate-supervise-assertion))
 
 ;;;; End of file `testcase.lisp'
