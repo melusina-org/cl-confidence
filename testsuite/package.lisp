@@ -21,6 +21,7 @@
    #:a-simple-failure
    #:a-successful-testsuite
    #:a-successful-testsuite-with-function-calls
+   #:ensure-that-an-instrumented-assertion-returns-its-value
    #:ensure-that-define-testcase-recognises-sharpsign-single-quote-in-function-names
    #:ensure-that-testcase-is-reported-when-wrapped-in-flet
    #:interactive-assertion-count

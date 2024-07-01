@@ -35,6 +35,12 @@
 (define-testcase a-successful-testsuite ()
   (assert-t t))
 
+(define-testcase a-testsuite-conditioned-by-assertions ()
+  (when (assert-t t)
+    (assert-t t))
+  (when (assert-t nil)
+    (assert-t t)))
+
 (define-testcase a-failing-argument-testsuite ()
   (assert-t t)
   (assert-eq 0 0)
@@ -109,11 +115,20 @@
     (assert-eq 10 (confidence:testcase-failure testcase-outcome))
     (assert-eq 1 (confidence:testcase-condition testcase-outcome))))
 
+(define-testcase ensure-that-an-instrumented-assertion-returns-its-value ()
+  (with-testcase-outcome testcase-outcome
+      (a-testsuite-conditioned-by-assertions)
+    (assert-type testcase-outcome 'confidence:testcase-outcome)
+    (assert-eq 3 (confidence:testcase-total testcase-outcome))
+    (assert-eq 2 (confidence:testcase-success testcase-outcome))
+    (assert-eq 1 (confidence:testcase-failure testcase-outcome))))
+
 (define-testcase testsuite-testcase ()
   (validate-define-testcase)
   (ensure-that-define-testcase-recognises-sharpsign-single-quote-in-function-names)
   (ensure-that-testcase-is-reported-when-wrapped-in-flet)
   (ensure-that-define-testcase-handles-dotted-lists)
+  (ensure-that-an-instrumented-assertion-returns-its-value)
   (validate-supervise-assertion))
 
 ;;;; End of file `testcase.lisp'

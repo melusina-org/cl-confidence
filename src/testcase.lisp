@@ -387,10 +387,13 @@ instead of returning normally."))
 		       (return-from evaluate-assertion-lambda)))
 		 (cond
 		   ((not success-p)
-		    (signal-failure description))
+		    (signal-failure description)
+		    (return-from instrument-assertion-1 
+		      (values nil description)))
 		   (t
-		    (signal-success)))
-		 (values nil))))
+		    (signal-success)
+		    (return-from instrument-assertion-1 
+		      t))))))
 	   (evaluate-argument-lambda (argument-lambda)
 	     (handler-case (values nil (funcall argument-lambda))
 	       (t (unexpected-condition)
