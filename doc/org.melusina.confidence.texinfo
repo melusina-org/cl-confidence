@@ -117,72 +117,72 @@ function. A special kind of function, but a function.
 
 @node Define Assertions, Comparison Assertions, Assertions, Assertions
 @section Define Assertions
-@include include/macro-org.melusina.confidence-define-assertion.texinfo
+@include include/macro-confidence-define-assertion.texinfo
 
 @node Comparison Assertions, Condition Assertions, Define Assertions, Assertions
 @section Comparison Assertions
 
-@include include/fun-org.melusina.confidence-assert-t.texinfo
-@include include/fun-org.melusina.confidence-assert-t-star.texinfo
-@include include/fun-org.melusina.confidence-assert-nil.texinfo
-@include include/fun-org.melusina.confidence-assert-type.texinfo
-@include include/fun-org.melusina.confidence-assert-eq.texinfo
-@include include/fun-org.melusina.confidence-assert-eql.texinfo
-@include include/fun-org.melusina.confidence-assert-equal.texinfo
-@include include/fun-org.melusina.confidence-assert-equalp.texinfo
-@include include/fun-org.melusina.confidence-assert-equals.texinfo
-@include include/fun-org.melusina.confidence-assert-lt.texinfo
-@include include/fun-org.melusina.confidence-assert-gt.texinfo
-@include include/fun-org.melusina.confidence-assert-lt-equals.texinfo
-@include include/fun-org.melusina.confidence-assert-gt-equals.texinfo
+@include include/fun-confidence-assert-t.texinfo
+@include include/fun-confidence-assert-t-star.texinfo
+@include include/fun-confidence-assert-nil.texinfo
+@include include/fun-confidence-assert-type.texinfo
+@include include/fun-confidence-assert-eq.texinfo
+@include include/fun-confidence-assert-eql.texinfo
+@include include/fun-confidence-assert-equal.texinfo
+@include include/fun-confidence-assert-equalp.texinfo
+@include include/fun-confidence-assert-equals.texinfo
+@include include/fun-confidence-assert-lt.texinfo
+@include include/fun-confidence-assert-gt.texinfo
+@include include/fun-confidence-assert-lt-equals.texinfo
+@include include/fun-confidence-assert-gt-equals.texinfo
 
 @node Condition Assertions, Character Assertions, Comparison Assertions, Assertions
 @section Condition Assertions
 
-@include include/macro-org.melusina.confidence-assert-condition.texinfo
+@include include/macro-confidence-assert-condition.texinfo
 
 @node Character Assertions, String Assertions, Condition Assertions, Assertions
 @section Character Assertions
 
-@include include/fun-org.melusina.confidence-assert-char-equal.texinfo
-@include include/fun-org.melusina.confidence-assert-char-equals.texinfo
-@include include/fun-org.melusina.confidence-assert-char-gt.texinfo
-@include include/fun-org.melusina.confidence-assert-char-gt-equals.texinfo
-@include include/fun-org.melusina.confidence-assert-char-lt.texinfo
-@include include/fun-org.melusina.confidence-assert-char-lt-equals.texinfo
+@include include/fun-confidence-assert-char-equal.texinfo
+@include include/fun-confidence-assert-char-equals.texinfo
+@include include/fun-confidence-assert-char-gt.texinfo
+@include include/fun-confidence-assert-char-gt-equals.texinfo
+@include include/fun-confidence-assert-char-lt.texinfo
+@include include/fun-confidence-assert-char-lt-equals.texinfo
 
 @node String Assertions, List Assertions, Character Assertions, Assertions
 @section String Assertions
 
-@include include/fun-org.melusina.confidence-assert-string-equal.texinfo
-@include include/fun-org.melusina.confidence-assert-string-equals.texinfo
-@include include/fun-org.melusina.confidence-assert-string-gt.texinfo
-@include include/fun-org.melusina.confidence-assert-string-gt-equals.texinfo
-@include include/fun-org.melusina.confidence-assert-string-lt.texinfo
-@include include/fun-org.melusina.confidence-assert-string-lt-equals.texinfo
-@include include/fun-org.melusina.confidence-assert-string-match.texinfo
+@include include/fun-confidence-assert-string-equal.texinfo
+@include include/fun-confidence-assert-string-equals.texinfo
+@include include/fun-confidence-assert-string-gt.texinfo
+@include include/fun-confidence-assert-string-gt-equals.texinfo
+@include include/fun-confidence-assert-string-lt.texinfo
+@include include/fun-confidence-assert-string-lt-equals.texinfo
+@include include/fun-confidence-assert-string-match.texinfo
 
 @node List Assertions, Vector Assertions, String Assertions, Assertions
 @section List Assertions
 
-@include include/fun-org.melusina.confidence-assert-list-equal.texinfo
-@include include/fun-org.melusina.confidence-assert-set-equal.texinfo
-@include include/fun-org.melusina.confidence-assert-subsetp.texinfo
+@include include/fun-confidence-assert-list-equal.texinfo
+@include include/fun-confidence-assert-set-equal.texinfo
+@include include/fun-confidence-assert-subsetp.texinfo
 
 @node Vector Assertions, Floating Number Assertions, List Assertions, Assertions
 @section Vector Assertions
 
-@include include/fun-org.melusina.confidence-assert-vector-equal.texinfo
+@include include/fun-confidence-assert-vector-equal.texinfo
 
 @node Floating Number Assertions, Testcases, Vector Assertions, Assertions
 @section Floating Number Assertions
 
-@include include/var-org.melusina.confidence-star-double-float-precision-star.texinfo
-@include include/var-org.melusina.confidence-star-single-float-precision-star.texinfo
-@include include/fun-org.melusina.confidence-assert-float-is-approximately-equal.texinfo
-@include include/fun-org.melusina.confidence-assert-float-is-essentially-equal.texinfo
-@include include/fun-org.melusina.confidence-assert-float-is-definitely-greater-than.texinfo
-@include include/fun-org.melusina.confidence-assert-float-is-definitely-less-than.texinfo
+@include include/var-confidence-star-double-float-precision-star.texinfo
+@include include/var-confidence-star-single-float-precision-star.texinfo
+@include include/fun-confidence-assert-float-is-approximately-equal.texinfo
+@include include/fun-confidence-assert-float-is-essentially-equal.texinfo
+@include include/fun-confidence-assert-float-is-definitely-greater-than.texinfo
+@include include/fun-confidence-assert-float-is-definitely-less-than.texinfo
 
 @node Testcases, Specialities, Floating Number Assertions, Top
 @chapter Testcases
@@ -198,8 +198,8 @@ is that some specific @i{restarts} are available in this context.
 
 @section Define a Testcase
 
-@include include/macro-org.melusina.confidence-define-testcase.texinfo
-@include include/class-org.melusina.confidence-testcase-outcome.texinfo
+@include include/macro-confidence-define-testcase.texinfo
+@include include/class-confidence-testcase-outcome.texinfo
 
 @section Describe Failed Assertions
 
@@ -207,7 +207,7 @@ When an assertion fails, it prints a description on the
 @code{*error-output*}, unless the following configuration variable
 is set to @code{nil}.
 
-@include include/var-org.melusina.confidence-star-testcase-describe-failed-assertions-star.texinfo
+@include include/var-confidence-star-testcase-describe-failed-assertions-star.texinfo
 
 
 @section Run Testcases in Batch
@@ -224,8 +224,8 @@ assertion, the debugger is invoked. To do so, modify the variable
 @code{*testcase-break-into-the-debugger-on-errors*} either directly
 or with the function @code{testcase-break-into-the-debugger-on-errors}.
 
-@include include/var-org.melusina.confidence-star-testcase-break-into-the-debugger-on-errors-star.texinfo
-@include include/fun-org.melusina.confidence-testcase-break-into-the-debugger-on-errors.texinfo
+@include include/var-confidence-star-testcase-break-into-the-debugger-on-errors-star.texinfo
+@include include/fun-confidence-testcase-break-into-the-debugger-on-errors.texinfo
 
 When this configuration is active, the following @i{restarts} are
 available in the debugger:
@@ -259,7 +259,7 @@ generated documentation.  It could however be desirable to explciitly
 add them to the export list of a package.  To support this, the
 @b{Confidence} system exports the following function:
 
-@include include/fun-org.melusina.confidence-print-export-list-for-testcases.texinfo
+@include include/fun-confidence-print-export-list-for-testcases.texinfo
 
 
 @node Specialities, , Testcases, Top

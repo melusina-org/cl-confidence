@@ -11,16 +11,14 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(defpackage #:org.melusina.confidence/development
-  (:use #:cl)
-  (:local-nicknames
-   (#:atelier #:org.melusina.atelier))
+(defpackage #:confidence/development
+  (:use #:common-lisp)
   (:export
    #:lint
    #+quicklisp
    #:reload))
 
-(in-package #:org.melusina.confidence/development)
+(in-package #:confidence/development)
 
 (defun system-relative-pathname (pathname)
   (flet ((system-source-directory ()

@@ -11,8 +11,9 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(defpackage #:org.melusina.confidence
+(defpackage #:confidence
   (:use #:common-lisp)
+  (:nicknames #:org.melusina.confidence)
   (:export
    #:quit
    ;; Results
@@ -93,6 +94,6 @@
    #:assert-float-is-essentially-equal
   ))
 
-(in-package #:org.melusina.confidence)
+(in-package #:confidence)
 
 ;;;; End of file `package.lisp'

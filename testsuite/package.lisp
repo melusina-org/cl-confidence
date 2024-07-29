@@ -11,9 +11,9 @@
 ;;;; you should have received as part of this distribution. The terms
 ;;;; are also available at https://opensource.org/licenses/MIT
 
-(defpackage #:org.melusina.confidence/testsuite
-  (:local-nicknames (#:confidence #:org.melusina.confidence))
+(defpackage #:confidence/testsuite
   (:use #:common-lisp #:org.melusina.confidence)
+  (:nicknames #:org.melusina.confidence/testsuite)
   (:export
    #:a-compound-failing-testsuite
    #:a-failing-argument-testsuite
@@ -50,6 +50,6 @@
    #:validate-outcome-can-be-described
    #:validate-supervise-assertion))
 
-(in-package #:org.melusina.confidence/testsuite)
+(in-package #:confidence/testsuite)
 
 ;;;; End of file `package.lisp'
