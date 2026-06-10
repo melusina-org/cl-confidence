@@ -48,6 +48,16 @@
   ((:module "libexec/lisp"
     :components ((:file "development")))))
 
+(asdf:defsystem #:org.melusina.confidence/atelier
+  :description "Operator-style declarations for Atelier"
+  :author "Michaël Le Barbier"
+  :license "MIT License"
+  :depends-on (#:org.melusina.confidence
+	       #:org.melusina.atelier)
+  :components
+  ((:module "libexec/lisp"
+    :components ((:file "atelier")))))
+
 (asdf:defsystem #:org.melusina.confidence/user
   :description "System for Confidence Users"
   :author "Michaël Le Barbier"
