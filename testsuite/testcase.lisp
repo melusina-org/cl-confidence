@@ -123,12 +123,42 @@
     (assert-eq 2 (confidence:testcase-success testcase-outcome))
     (assert-eq 1 (confidence:testcase-failure testcase-outcome))))
 
+(define-testcase a-labelled-testsuite ()
+  "A testsuite requiring the label :EXAMPLE."
+  (declare (confidence:label :example))
+  (assert-t t))
+
+(define-testcase a-compound-labelled-testsuite ()
+  (a-successful-testsuite)
+  (a-labelled-testsuite))
+
+(define-testcase ensure-that-define-testcase-records-labels ()
+  (assert-equal '(:example) (confidence:testcase-labels 'a-labelled-testsuite))
+  (assert-nil (confidence:testcase-labels 'a-successful-testsuite))
+  (assert-string= "A testsuite requiring the label :EXAMPLE."
+                  (documentation 'a-labelled-testsuite 'function)))
+
+(define-testcase ensure-that-testcases-with-denied-labels-are-skipped ()
+  (let ((confidence:*testcase-allowed-labels* nil))
+    (with-testcase-outcome testcase-outcome (a-compound-labelled-testsuite)
+      (assert-eq 1 (confidence:testcase-total testcase-outcome))
+      (assert-eq 1 (confidence:testcase-skipped testcase-outcome))))
+  (let ((confidence:*testcase-allowed-labels* '(:example)))
+    (with-testcase-outcome testcase-outcome (a-compound-labelled-testsuite)
+      (assert-eq 2 (confidence:testcase-total testcase-outcome))
+      (assert-eq 0 (confidence:testcase-skipped testcase-outcome))))
+  (let ((confidence:*testcase-allowed-labels* t))
+    (with-testcase-outcome testcase-outcome (a-compound-labelled-testsuite)
+      (assert-eq 2 (confidence:testcase-total testcase-outcome)))))
+
 (define-testcase testsuite-testcase ()
   (validate-define-testcase)
   (ensure-that-define-testcase-recognises-sharpsign-single-quote-in-function-names)
   (ensure-that-testcase-is-reported-when-wrapped-in-flet)
   (ensure-that-define-testcase-handles-dotted-lists)
   (ensure-that-an-instrumented-assertion-returns-its-value)
+  (ensure-that-define-testcase-records-labels)
+  (ensure-that-testcases-with-denied-labels-are-skipped)
   (validate-supervise-assertion))
 
 ;;;; End of file `testcase.lisp'

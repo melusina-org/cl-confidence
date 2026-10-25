@@ -34,6 +34,11 @@ The default value of the parameter is based on the :SWANK and :SLYNK features.")
 (defvar *testcase-describe-failed-assertions* *error-output*
   "Flag controlling whether a testcase should describe failed assertions or not.")
 
+(defvar *testcase-allowed-labels* t
+  "The labels a testcase may declare and still run.
+A testcase runs when the labels it declares are a subset of this list. Other testcases
+are skipped and counted in the outcome. The value T permits every label.")
+
 (defparameter *testcase-path* nil
   "The current path in the testcase hierarchy.
 This is a list of symbols designating the argument-less testcases in the call stack.")
@@ -447,9 +452,36 @@ guarantees that conditions triggered by the evaluation of arguments are recorded
 ;;; DEFINE-TESTCASE
 ;;;
 
+(declaim (declaration label))
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun set-testcase-properties (name)
-    (setf (get name :org.melusina.confidence/testcase) t)))
+  (defun set-testcase-properties (name &optional labels)
+    (setf (get name :org.melusina.confidence/testcase) t
+	  (get name :org.melusina.confidence/labels) labels))
+
+  (defun extract-testcase-labels (declarations)
+    "Split DECLARATIONS into the testcase labels and the remaining declarations.
+A label declaration has the form (DECLARE (LABEL KEYWORD...))."
+    (loop :for (nil . specifiers) :in declarations
+	  :for labels = (loop :for specifier :in specifiers
+			      :when (and (consp specifier) (eq 'label (first specifier)))
+				:append (rest specifier))
+	  :for others = (remove-if (lambda (specifier)
+				     (and (consp specifier) (eq 'label (first specifier))))
+				   specifiers)
+	  :append labels :into all-labels
+	  :when others
+	    :collect `(declare ,@others) :into remaining-declarations
+	  :finally (return (values (remove-duplicates all-labels) remaining-declarations)))))
+
+(defun testcase-labels (testcase-name)
+  "The labels declared by the testcase TESTCASE-NAME."
+  (get testcase-name :org.melusina.confidence/labels))
+
+(defun testcase-labels-allowed-p (labels)
+  "Predicate recognising LABELS allowed by *TESTCASE-ALLOWED-LABELS*."
+  (or (eq t *testcase-allowed-labels*)
+      (subsetp labels *testcase-allowed-labels*)))
 
 (defun define-testcase/wrap-assertion-forms (body-forms)
   "Walks through BODY-FORMS and wrap assertion forms in a RESTART-CASE."
@@ -510,9 +542,20 @@ symbol of this function."
     (with-open-file (stream pathname :direction :output :if-exists :supersede)
       (describe outcome stream))))
 
+(defun skip-testcase-body (testcase-name)
+  "The body of the testcase TESTCASE-NAME skipped for its labels."
+  (lambda ()
+    (when *testcase-describe-failed-assertions*
+      (format *testcase-describe-failed-assertions* "~&Skipped testcase ~S requiring labels~{ ~S~}~%"
+	      testcase-name (testcase-labels testcase-name)))
+    (incf (slot-value *current-testcase-outcome* 'skipped))))
+
 (defun run-testcase (&key testcase-name testcase-body)
-  "Run TESTCASE-BODY"
+  "Run TESTCASE-BODY.
+When the labels of TESTCASE-NAME are not allowed, the testcase is skipped."
   (check-type testcase-name symbol)
+  (unless (testcase-labels-allowed-p (testcase-labels testcase-name))
+    (setf testcase-body (skip-testcase-body testcase-name)))
   (let* ((testsuite-p
 	   (not *testsuite-id*))
 	 (*testsuite-id*
@@ -593,17 +636,20 @@ symbol of this function."
 			(with-slots ((current-total total)
 				     (current-success success)
 				     (current-failure failure)
-				     (current-condition condition))
+				     (current-condition condition)
+				     (current-skipped skipped))
 			    *current-testcase-outcome*
 			  (with-slots ((testcase-total total)
 				       (testcase-success success)
 				       (testcase-failure failure)
-				       (testcase-condition condition))
+				       (testcase-condition condition)
+				       (testcase-skipped skipped))
 			      (testcase-outcome condition)
 			    (incf current-total testcase-total)
 			    (incf current-success testcase-success)
 			    (incf current-failure testcase-failure)
-			    (incf current-condition testcase-condition))))))
+			    (incf current-condition testcase-condition)
+			    (incf current-skipped testcase-skipped))))))
 		 (case *testcase-break-into-the-debugger-on-errors*
 		   ((:testcase-scroll :testcase-step-up)
 		    (setf *testcase-break-into-the-debugger-on-errors* t)))
@@ -626,10 +672,14 @@ The BODY is examined and assertions spotted in it are wrapped with extra code
 installing restarts and aggregating outcomes for assertions and nested testcases..
 
 The return value of a testcase is a TESTCASE-OUTCOME, holding a precise description
-of tests that ran and their outcomes."
-  (set-testcase-properties testcase-name)
-  (multiple-value-bind (remaining-forms declarations doc-string)
+of tests that ran and their outcomes.
+
+The declaration (DECLARE (LABEL KEYWORD...)) in BODY attaches labels to the testcase
+that need to be all allowed by *TESTCASE-ALLOWED-LABELS* in order for the test to run."
+  (multiple-value-bind (remaining-forms all-declarations doc-string)
       (alexandria:parse-body body :documentation t)
+   (multiple-value-bind (labels declarations) (extract-testcase-labels all-declarations)
+    (set-testcase-properties testcase-name labels)
     `(prog1
 	 (defun ,testcase-name ,testcase-args
 	   ,@(when doc-string (list doc-string))
@@ -641,7 +691,7 @@ of tests that ran and their outcomes."
 	      :testcase-name (quote ,testcase-name)
 	      :testcase-body #'testcase-body)))
        (export (quote ,testcase-name))
-       (set-testcase-properties ',testcase-name))))
+       (set-testcase-properties ',testcase-name ',labels)))))
 
 (defun list-testcases (&optional (package-designator *package*))
   "List testcases exported by PACKAGE-DESIGNATOR."

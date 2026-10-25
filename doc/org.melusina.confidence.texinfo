@@ -304,25 +304,37 @@ without supplementary tooling.
 
 @section Test Tags
 
-Some test frameworks provide a tag feature so that it possible to run
-tests according to some tags attached to them.  Some popular Java
-testing frameworks offer such a tag feature. Relying on this to decide
-which tests to run obfuscates the test workflow and makes it hard to
-understand which tests are run in a specific context.
+Some test frameworks provide a tag feature to select the tests to
+run.  Relying on tags to decide which tests to run obfuscates the test
+workflow and makes it hard to understand which tests run in a specific
+context.  @b{Confidence} keeps the test hierarchy explicit: a testcase
+lists the testcases it runs.
 
-Having a testcase explicitly listing the other testcases it must run
-is a simple and reliable organisation that never lies to the
-programmer.  It also makes the test hierarchy navigable in IDEs
-without extra tooling.
+
+@section Test Labels
+
+A @i{label} states a requirement of a testcase on its environment,
+such as a cluster or a virtual machine.  For instance, the declaration
+@code{(declare (confidence:label :cluster))} in the body of
+@code{define-testcase} attaches the label @code{:cluster} to the
+testcase.  The environment states the labels it allows in the variable
+@code{*testcase-allowed-labels*}.  A testcase runs when its labels are
+a subset of the allowed labels.  Otherwise a label attached to the
+testcase is denied and the testcases is skipped: its body does not run
+and the outcome counts them in @code{testcase-skipped}.
+
+@include include/var-confidence-star-testcase-allowed-labels-star.texinfo
+@include include/fun-confidence-testcase-labels.texinfo
+
+A label skips the subtree of the testcase.  A testcase holding a test
+fixture, such as a virtual machine, carries the label of the fixture.
 
 
 @section Test Selection
 
-When some tests are only relevant to some platform, or must be be
-controlled by a feature, it is very easy to control their inclusion in
-the testsuite using the feature-related reader macros.  It does not
-seem necessary for @b{Confidence} to provide special features as the
-usual Common Lisp operstors @code{when}, @code{unless} and
-@code{return-from} can be used here.
+Labels select tests according to the environment.  Feature
+expressions select tests according to the Lisp implementation and are
+evaluated at compile time.  The operators @code{when}, @code{unless}
+and @code{return-from} cover the remaining cases.
 
 @bye

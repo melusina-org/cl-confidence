@@ -58,7 +58,14 @@ This is the stack of preceding testcases in the test hierarchy.")
     :initform 0
     :reader testcase-condition
     :documentation
-    "The total number of assertions that yielded a condition in the testcase and its descendants."))
+    "The total number of assertions that yielded a condition in the testcase and its descendants.")
+   (skipped
+    :initarg :skipped
+    :initform 0
+    :reader testcase-skipped
+    :documentation
+    "The number of testcases skipped in the testcase and its descendants.
+A testcase is skipped when its labels are not allowed, see *TESTCASE-ALLOWED-LABELS*."))
   (:documentation
    "A class capturing a testcase outcome."))
 
@@ -67,7 +74,7 @@ This is the stack of preceding testcases in the test hierarchy.")
     (format stream ":NAME ~S" (if (slot-boundp instance 'name)
 			 (slot-value instance 'name)
 			 "(no name)"))
-    (loop :for slot :in '(total success failure condition)
+    (loop :for slot :in '(total success failure condition skipped)
 	  :do (format stream " :~A ~A" (symbol-name slot) (slot-value instance slot)))))
 
 (defmethod describe-object ((instance testcase-outcome) stream)
@@ -76,8 +83,10 @@ This is the stack of preceding testcases in the test hierarchy.")
 	     (format stream "~&Path:~%")
 	     (loop :for path-element :in (reverse path)
 		   :do (format stream "~S~%" path-element))))
-	 (describe-result (&key total success failure condition)
+	 (describe-result (&key total success failure condition skipped)
 	   (format stream "~&Total: ~D" total)
+	   (when (> skipped 0)
+	     (format stream "~&Skipped testcases: ~D" skipped))
 	   (when (> total 0)
 	     (flet ((fraction (n)
 		      (round (/ (* 100 n) total))))
@@ -90,7 +99,7 @@ This is the stack of preceding testcases in the test hierarchy.")
 	     (if (< success total)
 		 (format stream "~&Outcome: Failure")
 		 (format stream "~&Outcome: Success")))))
-  (with-slots (name path argument-values total success failure condition) instance
+  (with-slots (name path argument-values total success failure condition skipped) instance
     (format stream "~&Name: ~S" name)
     (describe-path path)
     (cond
@@ -101,10 +110,12 @@ This is the stack of preceding testcases in the test hierarchy.")
 	     :do (format stream "~& Argument #~A: ~S" i argument)))
       ((= (length argument-values) 1)
        (format stream "~&Argument: ~S" (first argument-values))))
-    (describe-result :total total :success success :failure failure :condition condition))))
+    (describe-result :total total :success success :failure failure :condition condition
+		     :skipped skipped))))
 
-(defun make-testcase-outcome (&rest initargs &key path name argument-values total success failure condition)
-  (declare (ignore path name argument-values total success failure condition))
+(defun make-testcase-outcome (&rest initargs
+			      &key path name argument-values total success failure condition skipped)
+  (declare (ignore path name argument-values total success failure condition skipped))
   (apply #'make-instance 'testcase-outcome initargs))
 
 

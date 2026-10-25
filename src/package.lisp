@@ -24,6 +24,7 @@
    #:testcase-success
    #:testcase-failure
    #:testcase-condition
+   #:testcase-skipped
    #:testcase-argument-values
    ;; Testcases
    #:assertion-path
@@ -35,6 +36,9 @@
    #:assertion-description
    #:assertion-condition
    #:define-testcase
+   #:label
+   #:testcase-labels
+   #:*testcase-allowed-labels*
    #:without-confidence
    #:*testcase-interactive-p*
    #:*testcase-describe-failed-assertions*
